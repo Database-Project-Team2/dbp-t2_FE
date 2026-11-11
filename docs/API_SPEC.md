@@ -17,23 +17,26 @@
 
 | 기능 | 메서드·경로 | 입력 | 응답 | 권한 |
 | --- | --- | --- | --- | --- |
-| 로그인 | POST `/auth/login` | login_id, password | employee, is_pm, server_today | 공개 |
+| 로그인 | POST `/auth/login` | login_id, password | access_token, employee, is_pm, server_today | 공개 |
 | 로그아웃 | POST `/auth/logout` | 없음 | 204 | 로그인 사용자 |
 | 내 로그인 정보 | GET `/auth/me` | 없음 | employee, is_pm, server_today | 로그인 사용자 |
 | ID 중복 확인 | GET `/auth/check-login-id` | login_id | login_id, available | 공개 |
-| CSRF 토큰 | GET `/auth/csrf` | 없음 | header_name, token | 공개 |
 
-서버 세션 쿠키 `SESSION` 방식으로 제안합니다. POST/PATCH에는 위에서 받은 `X-CSRF-TOKEN`을 보내며, 로그인·로그아웃·가입 후 토큰을 다시 받습니다. 퇴사자는 로그인할 수 없습니다.
+- JWT 인증을 사용합니다. 로그인·회원가입 성공 응답의 `data.access_token`을 프론트가 보관하며, 토큰은 발급 시점부터 12시간 동안 유효합니다. 퇴사자는 로그인할 수 없습니다.
+- 인증이 필요한 모든 요청(GET·CSV 다운로드 포함)에 `Authorization: Bearer <access_token>` 헤더를 보냅니다. 서버는 토큰을 검증하고 요청별 권한을 확인합니다.
+- 로그아웃은 프론트가 토큰과 로그인 상태를 삭제하면 완료됩니다. `POST /auth/logout`은 본문 없이 204만 반환하는 형식상 API이며, 서버에서 토큰을 폐기하지 않습니다. API 호출 실패 여부와 무관하게 프론트는 토큰을 삭제합니다.
+- 비밀번호 변경 성공 후 프론트는 토큰과 로그인 상태를 삭제하고 로그인 화면으로 이동합니다. 인증이 필요한 요청에서 토큰 누락·만료·검증 실패로 401을 받아도 동일하게 처리합니다.
+- 로그아웃·비밀번호 변경으로 이미 발급된 토큰이 무효화되지는 않습니다. 다른 기기나 복사본에 남은 토큰도 원래 만료 시각까지 유효하며, 비밀번호 변경 후 재로그인은 현재 프론트의 토큰 삭제로만 처리합니다.
 
 ## 1. 직원 — EMPLOYEE
 
 | 기능 | 메서드·경로 | 입력 | 응답 | 권한 |
 | --- | --- | --- | --- | --- |
-| 회원가입 | POST `/employees` | 아래 가입 필드 | employee, is_pm, server_today | 공개 |
+| 회원가입 | POST `/employees` | 아래 가입 필드 | access_token, employee, is_pm, server_today | 공개 |
 | 직원 검색 | GET `/employees` | employee_name?, employee_no?, job_category?, employment_status?, assigned?, min_career_months?, skill? | 직원 목록 + current_assignment_count | 경영진 |
 | 직원 상세 | GET `/employees/{employee_id}` | 없음 | 직원 정보 | 경영진 또는 본인 |
 | 내 정보 수정 | PATCH `/employees/me` | education?, total_career_months?, skill_description? | 수정된 직원 정보 | 본인 |
-| 비밀번호 변경 | PATCH `/employees/me/password` | current_password, new_password | 204, 재로그인 | 본인 |
+| 비밀번호 변경 | PATCH `/employees/me/password` | current_password, new_password | 204, 프론트 토큰 삭제 후 재로그인 | 본인 |
 | 개인 경력 | GET `/employees/{employee_id}/career` | project_id?, project_role?, as_of?, from?, to?, ongoing_projects_only? | 프로젝트별 역할·투입 이력 | 경영진 또는 본인 |
 | 경력 다운로드 | GET `/employees/{employee_id}/career.csv` | 개인 경력과 같은 필터 | CSV | 경영진 또는 본인 |
 
@@ -140,7 +143,8 @@
 | HTTP | 의미 |
 | --- | --- |
 | 400 | 필수값·자료형·범위 등 요청 형식 오류 |
-| 401 / 403 | 로그인 필요·만료 / 권한 또는 CSRF 오류 |
+| 401 | 로그인 실패 또는 인증 토큰 누락·만료·검증 실패 |
+| 403 | 인증된 사용자의 요청 권한 부족 |
 | 404 | 대상 없음 또는 조회 범위 밖 |
 | 409 | 중복 등록, 종료된 데이터 수정, 평가 단계 충돌 |
 | 422 | 날짜 관계 등 업무 조건 위반 |
@@ -150,5 +154,5 @@
 
 - 이 문서는 구현 전 초안입니다. 현재 사이트에는 백엔드 API가 연결되어 있지 않습니다.
 - 주민번호: SQL은 암호화 컬럼 필수지만 현재 가입 화면은 수집하지 않습니다. 수집 방식을 정하거나 DB·가입 요청을 함께 변경해야 합니다.
-- 세션/CSRF, 비밀번호 변경 시 현재 비밀번호 확인·재로그인, 실제 투입 시작 전 PM의 관리 권한은 이번 API 제안에 포함된 사항으로 팀 확정이 필요합니다.
+- JWT 인증·12시간 만료·프론트 토큰 삭제에 의한 로그아웃 및 재로그인은 협의된 방식입니다. 실제 투입 시작 전 PM의 관리 권한은 팀 확정이 필요합니다.
 - CSV는 목록과 같은 권한·조건의 전체 결과를 내보내며 page/size를 받지 않습니다.
