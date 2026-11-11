@@ -1,0 +1,24 @@
+/* 브랜드 값을 바꾸면 모든 Tailwind 컴포넌트에 반영됩니다. */
+@theme {
+  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+  --color-brand: #e60421;
+  --color-brand-hover: #c90020;
+  --color-brand-ink: #bc1530;
+  --color-brand-soft: #fff0f2;
+  --color-brand-line: #f2cbd2;
+  --color-ink: #202127;
+  --color-secondary: #606570;
+  --color-muted: #7c818c;
+  --color-line: #e9eaee;
+  --color-canvas: #f7f7f9;
+  --color-subtle: #fafafb;
+  --color-success: #20a677;
+  --color-success-soft: #e8f8f0;
+  --color-warning: #b58034;
+  --color-warning-soft: #fff6e9;
+  --color-purple: #8867d8;
+  --color-purple-soft: #f0edff;
+  --shadow-card: 0 2px 4px #17182002;
+  --shadow-floating: 0 14px 44px #17182015;
+  --shadow-dialog: 0 25px 100px #29292c35;
+}

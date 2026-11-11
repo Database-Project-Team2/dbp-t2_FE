@@ -1,0 +1,57 @@
+/* 브라우저 기본값과 접근성만 설정합니다. 화면별 스타일은 TSX에 있습니다. */
+@layer base {
+  body {
+    @apply m-0 min-w-[1200px] bg-canvas font-sans text-sm text-ink antialiased;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+  }
+  button,
+  a {
+    touch-action: manipulation;
+  }
+  button,
+  summary {
+    @apply cursor-pointer;
+  }
+  button:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+  button:focus-visible,
+  a:focus-visible,
+  summary:focus-visible {
+    @apply outline-2 outline-offset-4 outline-brand;
+  }
+  summary {
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  h1 {
+    @apply text-[30px] leading-normal font-extrabold tracking-[-1px];
+  }
+  h2 {
+    @apply text-lg font-bold tracking-tight;
+  }
+  h3 {
+    @apply text-base font-semibold tracking-tight;
+  }
+  p {
+    @apply leading-relaxed;
+  }
+  svg {
+    @apply shrink-0;
+  }
+  ::selection {
+    @apply bg-brand-soft text-brand-ink;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+}
