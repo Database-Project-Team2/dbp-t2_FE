@@ -1,9 +1,7 @@
 import { useState } from 'react'
+import { DateInput } from '@/shared/ui/forms/DateInput'
 import { Button } from '@/shared/ui/actions/Button'
-import { cn } from '@/shared/lib/cn'
 import { dateLabel } from '@/shared/lib/date'
-import { Icon } from '@/shared/ui/actions/Icon'
-import { Input } from '@/shared/ui/forms/Input'
 import { isAssigned } from '@/shared/domain/assignments'
 import { isManagement, visibleProjects } from '@/shared/domain/permissions'
 import { PageHeader } from '@/shared/ui/layout/PageHeader'
@@ -39,23 +37,13 @@ export function DashboardPage() {
         title="업무 현황"
         description={`${me.employee_name}님, ${manager ? '프로젝트와 팀의 주요 현황을 확인하세요.' : '참여 프로젝트와 할 일을 확인하세요.'}`}
         actions={
-          <label
-            className={cn(
-              'flex items-center gap-2 rounded-xl border border-line bg-white px-3 py-1 text-muted',
-              '[&_input]:w-auto [&_input]:border-0 [&_input]:bg-transparent [&_input]:px-0',
-              '[&_input]:py-2 [&_input]:text-xs [&_input]:focus:ring-0',
-            )}
-          >
-            <Icon name="calendar" size={18} />
-            <span className="sr-only">현황 기준일</span>
-            <Input
-              aria-label="현황 기준일"
-              type="date"
-              value={date}
-              max={today}
-              onInput={(e) => e.currentTarget.value && setDate(e.currentTarget.value)}
-            />
-          </label>
+          <DateInput
+            aria-label="현황 기준일"
+            value={date}
+            max={today}
+            required
+            onValueChange={(value) => value && setDate(value)}
+          />
         }
       />
       {historical && (

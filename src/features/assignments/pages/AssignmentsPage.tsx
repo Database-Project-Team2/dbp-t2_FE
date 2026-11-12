@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { Button } from '@/shared/ui/actions/Button'
 import { Card } from '@/shared/ui/layout/Card'
 import { downloadCsv, csvContent } from '@/shared/lib/csv'
+import { DateInput } from '@/shared/ui/forms/DateInput'
 import { Field } from '@/shared/ui/forms/Field'
 import { FilterPanel } from '@/shared/ui/forms/FilterPanel'
 import { Icon } from '@/shared/ui/actions/Icon'
-import { Input } from '@/shared/ui/forms/Input'
 import { isAssigned } from '@/shared/domain/assignments'
 import { overlapsPeriod, dateLabel } from '@/shared/lib/date'
 import { PageHeader } from '@/shared/ui/layout/PageHeader'
@@ -108,29 +108,22 @@ export function AssignmentsPage({ onNotice }: { onNotice: Notice }) {
         <FilterPanel label="날짜로 상세 검색" activeCount={[date, from, to].filter(Boolean).length}>
           <div className="flex flex-wrap items-end gap-3 px-6 pt-6 pb-4">
             <Field label="특정일 투입 현황">
-              <Input
+              <DateInput
                 aria-label="과거 투입 기준일"
-                type="date"
                 max={today}
                 value={date}
-                onInput={(e) => setDate(e.currentTarget.value)}
+                onValueChange={setDate}
               />
             </Field>
             <Field label="투입기간">
               <div className="flex items-center gap-2 text-muted [&_input]:w-[145px] [&_input]:text-xs">
-                <Input
-                  aria-label="투입기간 검색 시작"
-                  type="date"
-                  value={from}
-                  onInput={(e) => setFrom(e.currentTarget.value)}
-                />
+                <DateInput aria-label="투입기간 검색 시작" value={from} onValueChange={setFrom} />
                 <span>~</span>
-                <Input
+                <DateInput
                   aria-label="투입기간 검색 종료"
-                  type="date"
                   min={from}
                   value={to}
-                  onInput={(e) => setTo(e.currentTarget.value)}
+                  onValueChange={setTo}
                 />
               </div>
             </Field>

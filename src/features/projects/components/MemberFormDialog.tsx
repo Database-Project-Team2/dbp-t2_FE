@@ -1,9 +1,9 @@
 import { type FormEvent, useState } from 'react'
 import { Button } from '@/shared/ui/actions/Button'
 import { ErrorMessage } from '@/shared/ui/feedback/ErrorMessage'
+import { DateInput } from '@/shared/ui/forms/DateInput'
 import { Field } from '@/shared/ui/forms/Field'
 import { FormActions } from '@/shared/ui/forms/FormActions'
-import { Input } from '@/shared/ui/forms/Input'
 import { JOBS, ROLES } from '@/shared/model/labels'
 import { Modal } from '@/shared/ui/overlays/Modal'
 import { Select } from '@/shared/ui/forms/Select'
@@ -80,24 +80,18 @@ export function MemberFormDialog({
             </Select>
           </Field>
           <Field label="실제 투입 시작일" hint="투입 전이면 비워 두세요.">
-            <Input
-              type="date"
+            <DateInput
               max={today}
               value={form.assignment_start_date || ''}
-              onInput={(e) =>
-                setForm({ ...form, assignment_start_date: e.currentTarget.value || null })
-              }
+              onValueChange={(value) => setForm({ ...form, assignment_start_date: value || null })}
             />
           </Field>
           <Field label="실제 투입 종료일" hint="진행 중이면 비워 두세요.">
-            <Input
-              type="date"
+            <DateInput
               min={form.assignment_start_date || undefined}
               max={today}
               value={form.assignment_end_date || ''}
-              onInput={(e) =>
-                setForm({ ...form, assignment_end_date: e.currentTarget.value || null })
-              }
+              onValueChange={(value) => setForm({ ...form, assignment_end_date: value || null })}
             />
           </Field>
         </div>

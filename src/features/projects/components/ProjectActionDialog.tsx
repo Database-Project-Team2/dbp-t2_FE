@@ -1,9 +1,9 @@
 import { type FormEvent, useState } from 'react'
 import { Button } from '@/shared/ui/actions/Button'
 import { ErrorMessage } from '@/shared/ui/feedback/ErrorMessage'
+import { DateInput } from '@/shared/ui/forms/DateInput'
 import { Field } from '@/shared/ui/forms/Field'
 import { FormActions } from '@/shared/ui/forms/FormActions'
-import { Input } from '@/shared/ui/forms/Input'
 import { Modal } from '@/shared/ui/overlays/Modal'
 import { useStore } from '@/store/StoreContext'
 import type { Notice } from '@/app/routing/navigation'
@@ -51,13 +51,12 @@ export function ProjectActionDialog({
     >
       <form onSubmit={handleSubmit}>
         <Field label={close ? '실제 종료일' : '처리일'}>
-          <Input
+          <DateInput
             required
-            type="date"
             min={p.actual_start_date}
             max={today}
             value={date}
-            onInput={(e) => setDate(e.currentTarget.value)}
+            onValueChange={setDate}
           />
         </Field>
         <ErrorMessage error={error} />

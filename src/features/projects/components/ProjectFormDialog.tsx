@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react'
 import { Button } from '@/shared/ui/actions/Button'
 import { ErrorMessage } from '@/shared/ui/feedback/ErrorMessage'
+import { DateInput } from '@/shared/ui/forms/DateInput'
 import { Field } from '@/shared/ui/forms/Field'
 import { FormActions } from '@/shared/ui/forms/FormActions'
 import { Icon } from '@/shared/ui/actions/Icon'
@@ -67,21 +68,19 @@ export function ProjectFormDialog({
             </Select>
           </Field>
           <Field label="실제 착수일">
-            <Input
+            <DateInput
               required
-              type="date"
               max={today}
               value={form.actual_start_date}
-              onInput={(e) => setForm({ ...form, actual_start_date: e.currentTarget.value })}
+              onValueChange={(value) => setForm({ ...form, actual_start_date: value })}
             />
           </Field>
           <Field label="예정 종료일">
-            <Input
+            <DateInput
               required
-              type="date"
               min={form.actual_start_date}
               value={form.planned_end_date}
-              onInput={(e) => setForm({ ...form, planned_end_date: e.currentTarget.value })}
+              onValueChange={(value) => setForm({ ...form, planned_end_date: value })}
             />
           </Field>
         </div>

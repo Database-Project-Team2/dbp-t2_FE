@@ -1,3 +1,4 @@
+import { DateInput } from '@/shared/ui/forms/DateInput'
 import { Field } from '@/shared/ui/forms/Field'
 import { Input } from '@/shared/ui/forms/Input'
 import { JOBS } from '@/shared/model/labels'
@@ -50,13 +51,12 @@ export function RegistrationFields({ form }: { form: AuthFormState }) {
       </Field>
       <ResidentNumberField form={form} />
       <Field label="입사일" inputId="auth-hire" error={errors.hire} messageId="auth-hire-message">
-        <Input
+        <DateInput
           {...fieldProps('hire')}
           required
-          type="date"
           max={today}
           value={values.hire}
-          onChange={(event) => setField('hire', event.target.value)}
+          onValueChange={(value) => setField('hire', value)}
         />
       </Field>
       <Field label="직군" inputId="auth-job">

@@ -1,10 +1,10 @@
 import { type FormEvent, useState } from 'react'
 import { Button } from '@/shared/ui/actions/Button'
 import { ErrorMessage } from '@/shared/ui/feedback/ErrorMessage'
+import { DateInput } from '@/shared/ui/forms/DateInput'
 import { Field } from '@/shared/ui/forms/Field'
 import { FormActions } from '@/shared/ui/forms/FormActions'
 import { Icon } from '@/shared/ui/actions/Icon'
-import { Input } from '@/shared/ui/forms/Input'
 import { Modal } from '@/shared/ui/overlays/Modal'
 import { participantMembers } from '@/shared/domain/evaluations'
 import { Select } from '@/shared/ui/forms/Select'
@@ -96,13 +96,12 @@ export function EvaluationFormDialog({
             </Select>
           </Field>
           <Field label="평가일">
-            <Input
+            <DateInput
               required
-              type="date"
               min={p.actual_end_date || undefined}
               max={today}
               value={date}
-              onInput={(e) => setDate(e.currentTarget.value)}
+              onValueChange={setDate}
             />
           </Field>
           <Field label="평가 대상" wide hint="이미 제출한 대상은 목록에서 제외돼요.">

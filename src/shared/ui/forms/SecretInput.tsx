@@ -1,6 +1,7 @@
 import { useId, useState, type ComponentPropsWithRef } from 'react'
 import { cn } from '../../lib/cn'
 import { Icon } from '../actions/Icon'
+import { useFieldControl } from './FieldContext'
 import { controlStyles } from './controlStyles'
 
 type SecretInputProps = Omit<ComponentPropsWithRef<'input'>, 'type'> & {
@@ -10,7 +11,8 @@ type SecretInputProps = Omit<ComponentPropsWithRef<'input'>, 'type'> & {
 /** 각 입력칸이 독립적으로 표시 여부를 관리하며, 처음에는 항상 숨깁니다. */
 export function SecretInput({ label, id, className, disabled, ...props }: SecretInputProps) {
   const generatedId = useId()
-  const inputId = id || generatedId
+  const control = useFieldControl({ ...props, id })
+  const inputId = control.id || generatedId
   const [visible, setVisible] = useState(false)
   const toggleLabel = `${label} ${visible ? '숨기기' : '보기'}`
 
@@ -18,6 +20,7 @@ export function SecretInput({ label, id, className, disabled, ...props }: Secret
     <div className="relative w-full min-w-0">
       <input
         {...props}
+        {...control}
         id={inputId}
         type={visible ? 'text' : 'password'}
         disabled={disabled}

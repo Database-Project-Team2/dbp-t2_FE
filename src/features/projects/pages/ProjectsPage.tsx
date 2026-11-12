@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { Button } from '@/shared/ui/actions/Button'
 import { Card } from '@/shared/ui/layout/Card'
 import { Empty } from '@/shared/ui/feedback/Empty'
+import { DateInput } from '@/shared/ui/forms/DateInput'
 import { FilterPanel } from '@/shared/ui/forms/FilterPanel'
 import { Icon } from '@/shared/ui/actions/Icon'
-import { Input } from '@/shared/ui/forms/Input'
 import { matchesProjectSearch, projectStatus } from '@/shared/domain/projects'
 import { PageHeader } from '@/shared/ui/layout/PageHeader'
 import { SearchField } from '@/shared/ui/forms/SearchField'
@@ -106,20 +106,9 @@ export function ProjectsPage({ id, onNotice }: { id?: number; onNotice: Notice }
         <FilterPanel label="수행기간 검색" activeCount={[from, to].filter(Boolean).length}>
           <div className="flex flex-wrap items-end gap-3 px-6 pt-6 pb-4">
             <div className="flex items-center gap-2 text-muted [&_input]:w-[145px] [&_input]:text-xs">
-              <Input
-                type="date"
-                aria-label="수행기간 시작"
-                value={from}
-                onInput={(e) => setFrom(e.currentTarget.value)}
-              />
+              <DateInput aria-label="수행기간 시작" value={from} onValueChange={setFrom} />
               <span>~</span>
-              <Input
-                type="date"
-                aria-label="수행기간 종료"
-                value={to}
-                min={from}
-                onInput={(e) => setTo(e.currentTarget.value)}
-              />
+              <DateInput aria-label="수행기간 종료" value={to} min={from} onValueChange={setTo} />
             </div>
             <Button
               variant="text"
