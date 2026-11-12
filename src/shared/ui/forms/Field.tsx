@@ -3,21 +3,46 @@ import { cn } from '../../lib/cn'
 
 interface FieldProps {
   label: string
+  inputId?: string
   children: ReactNode
   hint?: string
   wide?: boolean
+  error?: string
+  success?: string
+  messageId?: string
 }
-export function Field({ label, children, hint, wide = false }: FieldProps) {
+export function Field({
+  label,
+  inputId,
+  children,
+  hint,
+  wide = false,
+  error,
+  success,
+  messageId,
+}: FieldProps) {
+  const Container = inputId ? 'div' : 'label'
   return (
-    <label
+    <Container
       className={cn(
         'flex min-w-0 flex-col gap-2 text-xs font-medium text-secondary [&_select]:w-full',
         wide && 'col-span-full',
       )}
     >
-      <span>{label}</span>
+      {inputId ? <label htmlFor={inputId}>{label}</label> : <span>{label}</span>}
       {children}
-      {hint && <small className="text-[11px] leading-normal font-normal text-muted">{hint}</small>}
-    </label>
+      {(error || success || hint) && (
+        <small
+          id={messageId}
+          aria-live="polite"
+          className={cn(
+            'text-[11px] leading-normal font-normal',
+            error ? 'text-brand' : success ? 'text-emerald-700' : 'text-muted',
+          )}
+        >
+          {error || success || hint}
+        </small>
+      )}
+    </Container>
   )
 }

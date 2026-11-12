@@ -11,13 +11,7 @@ const itemClass = cn(
   'hover:bg-canvas hover:text-ink',
   'aria-[current=page]:bg-brand-soft aria-[current=page]:text-brand-ink',
 )
-export function AccountMenu({
-  route,
-  onDemoSettings,
-}: {
-  route: string
-  onDemoSettings: () => void
-}) {
+export function AccountMenu({ route }: { route: string }) {
   const { db, user, switchUser } = useStore()
   const ref = useRef<HTMLDetailsElement>(null)
   const employee = user!
@@ -76,25 +70,6 @@ export function AccountMenu({
         >
           <Icon name="user" size={17} />내 프로필
         </a>
-        <a
-          href="#/guide"
-          onClick={closeMenu}
-          className={itemClass}
-          aria-current={route === 'guide' ? 'page' : undefined}
-        >
-          <Icon name="info" size={17} />
-          데모 가이드
-        </a>
-        <button
-          className={itemClass}
-          onClick={() => {
-            closeMenu()
-            onDemoSettings()
-          }}
-        >
-          <Icon name="reset" size={17} />
-          데모 설정
-        </button>
         <div className="mt-1 border-t border-line pt-1">
           <button
             className={itemClass}

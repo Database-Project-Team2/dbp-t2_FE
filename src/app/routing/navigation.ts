@@ -1,5 +1,5 @@
 export type Page =
-  'dashboard' | 'projects' | 'people' | 'history' | 'evaluations' | 'clients' | 'profile' | 'guide'
+  'dashboard' | 'projects' | 'people' | 'history' | 'evaluations' | 'clients' | 'profile'
 
 export const go = (path: string) => {
   window.location.hash = '/' + path

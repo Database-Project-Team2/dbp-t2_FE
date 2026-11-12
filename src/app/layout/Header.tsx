@@ -10,9 +10,8 @@ import { navigation } from '../routing/navigation'
 interface HeaderProps {
   route: string
   onSearch: () => void
-  onDemoSettings: () => void
 }
-export function Header({ route, onSearch, onDemoSettings }: HeaderProps) {
+export function Header({ route, onSearch }: HeaderProps) {
   const { user } = useStore()
   const page = route.split('/')[0]
   const items = navigation.filter(
@@ -48,7 +47,7 @@ export function Header({ route, onSearch, onDemoSettings }: HeaderProps) {
           >
             <Icon name="search" />
           </Button>
-          <AccountMenu route={route} onDemoSettings={onDemoSettings} />
+          <AccountMenu route={route} />
         </div>
       </div>
     </header>

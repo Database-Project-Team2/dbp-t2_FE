@@ -1,4 +1,4 @@
-export type SystemRole = 'MANAGEMENT' | 'EMPLOYEE'
+export type SystemRole = 'MANAGEMENT' | 'PM' | 'EMPLOYEE'
 
 export type Job = 'DEVELOPER' | 'MARKETING' | 'BUSINESS_ADMIN' | 'RESEARCH'
 
@@ -19,6 +19,7 @@ export interface Employee {
   job_category: Job
   login_id: string
   system_role: SystemRole
+  resident_no_masked?: string
 }
 
 export interface Client {

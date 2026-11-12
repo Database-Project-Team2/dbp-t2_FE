@@ -3,6 +3,7 @@ import type { Employee, Database, Project } from '../model/entities.ts'
 export const isManagement = (employee: Employee) => employee.system_role === 'MANAGEMENT'
 
 export const isPM = (db: Database, user: Employee, projectId?: number) =>
+  (projectId === undefined && user.system_role === 'PM') ||
   db.members.some(
     (member) =>
       member.employee_id === user.employee_id &&

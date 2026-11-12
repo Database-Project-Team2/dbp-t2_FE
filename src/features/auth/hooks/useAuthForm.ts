@@ -1,58 +1,91 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { go } from '@/app/routing/navigation'
+import { go, type Notice } from '@/app/routing/navigation'
 import { useStore } from '@/store/StoreContext'
-import type { Job } from '@/shared/model/entities'
-import type { Notice } from '@/app/routing/navigation'
+import {
+  loginIdError,
+  signupErrors,
+  type AuthValues,
+  type AuthErrors,
+} from '../model/authValidation'
 
-/** 입력 상태와 로그인·회원가입 검증을 관리합니다. UI는 AuthForm에서 조립합니다. */
+/** 입력·필드별 검증을 관리하고, 저장은 store에 위임합니다. */
 export function useAuthForm(signup: boolean, onNotice: Notice) {
   const { login, register, isIdAvailable, today } = useStore()
-  const [values, setValues] = useState({
+  const [values, setValues] = useState<AuthValues>({
     loginId: '',
     password: '',
     confirmation: '',
     name: '',
-    education: '대학교 졸업',
+    residentNo: '',
+    education: '',
     hire: today,
     months: '0',
-    job: 'DEVELOPER' as Job,
+    job: 'DEVELOPER',
     skills: '',
+    role: '',
   })
   const [checkedId, setCheckedId] = useState('')
-  const [idMessage, setIdMessage] = useState('')
+  const [idError, setIdError] = useState('')
+  const [touched, setTouched] = useState<Partial<Record<keyof AuthValues, boolean>>>({})
+  const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  function setField<Key extends keyof typeof values>(key: Key, value: (typeof values)[Key]) {
+  const validation = signup
+    ? signupErrors(values, checkedId)
+    : {
+        loginId: values.loginId.trim() ? '' : '로그인 ID를 입력해 주세요.',
+        password: values.password ? '' : '비밀번호를 입력해 주세요.',
+      }
+  const errors: AuthErrors = {}
+  for (const field of Object.keys(validation) as (keyof AuthValues)[]) {
+    const live =
+      (field === 'confirmation' && !!values.confirmation) ||
+      (field === 'residentNo' && values.residentNo.replace('-', '').length === 13)
+    if (submitted || touched[field] || live) errors[field] = validation[field]
+  }
+  if (idError) errors.loginId = idError
+
+  function setField<Key extends keyof AuthValues>(key: Key, value: AuthValues[Key]) {
     setValues((previous) => ({ ...previous, [key]: value }))
+    setError('')
     if (key === 'loginId') {
       setCheckedId('')
-      setIdMessage('')
+      setIdError('')
+    }
+  }
+  function fieldProps(name: keyof AuthValues) {
+    return {
+      name,
+      id: 'auth-' + name,
+      onBlur: () => setTouched((previous) => ({ ...previous, [name]: true })),
+      'aria-invalid': !!errors[name],
+      'aria-describedby': errors[name] ? `auth-${name}-message` : undefined,
     }
   }
   function checkId() {
-    if (!/^[a-zA-Z0-9._-]{3,100}$/.test(values.loginId)) {
-      setIdMessage('영문·숫자·마침표·밑줄·하이픈 3~100자로 입력하세요.')
-      return
-    }
-    const available = isIdAvailable(values.loginId)
-    setCheckedId(available ? values.loginId : '')
-    setIdMessage(available ? '사용할 수 있는 ID예요.' : '이미 사용 중인 ID예요.')
+    const message =
+      loginIdError(values.loginId) ||
+      (isIdAvailable(values.loginId) ? '' : '이미 사용 중인 ID예요.')
+    setIdError(message)
+    setCheckedId(message ? '' : values.loginId)
+    setTouched((previous) => ({ ...previous, loginId: true }))
   }
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (busy) return
+    setSubmitted(true)
     setError('')
-    if (signup && (checkedId !== values.loginId || !isIdAvailable(values.loginId))) {
-      setError('로그인 ID 중복 확인을 해주세요.')
-      return
-    }
-    if (signup && values.password !== values.confirmation) {
-      setError('비밀번호가 서로 달라요.')
+    const firstInvalid = (Object.keys(validation) as (keyof AuthValues)[]).find(
+      (field) => validation[field],
+    )
+    if (firstInvalid) {
+      event.currentTarget.querySelector<HTMLElement>(`[name="${firstInvalid}"]`)?.focus()
       return
     }
     setBusy(true)
     try {
-      if (signup) {
+      if (signup && values.role) {
         const employeeNo = await register(
           {
             employee_name: values.name,
@@ -62,6 +95,8 @@ export function useAuthForm(signup: boolean, onNotice: Notice) {
             total_career_months: Number(values.months),
             skill_description: values.skills || null,
             job_category: values.job,
+            system_role: values.role,
+            resident_no: values.residentNo,
           },
           values.password,
         )
@@ -74,6 +109,17 @@ export function useAuthForm(signup: boolean, onNotice: Notice) {
       setBusy(false)
     }
   }
-  return { values, setField, checkId, idMessage, error, busy, today, handleSubmit }
+  return {
+    values,
+    setField,
+    fieldProps,
+    errors,
+    checkedId,
+    checkId,
+    error,
+    busy,
+    today,
+    handleSubmit,
+  }
 }
 export type AuthFormState = ReturnType<typeof useAuthForm>

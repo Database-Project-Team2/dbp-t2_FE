@@ -1,4 +1,4 @@
-import { freshDatabase } from './demoData'
+import { freshDatabase } from './demoData.ts'
 import type { DemoState } from './types'
 
 // 기존 데모 데이터를 계속 사용할 수 있도록 저장 키와 버전을 유지합니다.
@@ -34,7 +34,9 @@ export function persistDemoState(state: DemoState) {
 
 export function loadSessionUserId(): number | null {
   const saved = sessionStorage.getItem(SESSION_KEY)
-  return saved === 'logout' ? null : Number(saved || 1)
+  if (!saved || !/^\d+$/.test(saved)) return null
+  const id = Number(saved)
+  return Number.isSafeInteger(id) && id > 0 ? id : null
 }
 
 export function persistSessionUserId(employeeId: number | null) {

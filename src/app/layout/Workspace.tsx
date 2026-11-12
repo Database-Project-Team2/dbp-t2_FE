@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AuthPage } from '@/features/auth/pages/AuthPage'
 import { cn } from '@/shared/lib/cn'
-import { DemoSettingsDialog } from '@/features/demo/components/DemoSettingsDialog'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { useStore } from '@/store/StoreContext'
 import { AppRoutes } from '../routing/AppRoutes'
@@ -15,7 +14,6 @@ export function Workspace() {
   const route = useHashRoute()
   const [notice, setNotice] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
-  const [demoOpen, setDemoOpen] = useState(false)
 
   useEffect(() => {
     if (!notice) return
@@ -37,11 +35,7 @@ export function Workspace() {
       >
         본문 바로가기
       </a>
-      <Header
-        route={route}
-        onSearch={() => setSearchOpen(true)}
-        onDemoSettings={() => setDemoOpen(true)}
-      />
+      <Header route={route} onSearch={() => setSearchOpen(true)} />
       <div className="w-full">
         <main
           className="mx-auto w-full max-w-[1320px] px-10 pt-10"
@@ -52,7 +46,6 @@ export function Workspace() {
           <AppRoutes route={route} onNotice={setNotice} />
           <footer className="mt-10 flex justify-between gap-4 py-6 text-[10px] text-muted">
             <span>© 2026 프람트테크놀로지</span>
-            <span>팀 2 · 가상 데이터로 체험 중</span>
           </footer>
         </main>
       </div>
@@ -72,7 +65,6 @@ export function Workspace() {
           </button>
         </div>
       )}
-      {demoOpen && <DemoSettingsDialog onClose={() => setDemoOpen(false)} onNotice={setNotice} />}
       {searchOpen && <QuickSearchDialog onClose={() => setSearchOpen(false)} />}
     </div>
   )

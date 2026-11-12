@@ -1,6 +1,6 @@
 # 팀 2 API 명세
 
-작성일: 2026-11-11 · 프론트엔드 연동용 초안 · 기준: ERD v1.5의 5개 테이블과 현재 화면
+수정일: 2026-11-12 · 프론트엔드 연동용 초안 · 기준: ERD v1.5의 5개 테이블과 현재 화면
 
 ## 공통
 
@@ -40,12 +40,13 @@
 | 개인 경력 | GET `/employees/{employee_id}/career` | project_id?, project_role?, as_of?, from?, to?, ongoing_projects_only? | 프로젝트별 역할·투입 이력 | 경영진 또는 본인 |
 | 경력 다운로드 | GET `/employees/{employee_id}/career.csv` | 개인 경력과 같은 필터 | CSV | 경영진 또는 본인 |
 
-**가입 필드:** employee_name, login_id, password, resident_no, education, hire_date, total_career_months, job_category, skill_description?. 주민번호 수집은 아래 ‘팀 확인 사항’에 해당합니다.
+**가입 필드:** employee_name, login_id, password, resident_no, education, hire_date, total_career_months, job_category, system_role, skill_description?. 비밀번호 확인은 프론트에서 검사하고 요청에서는 제외합니다.
 
 **직원 응답:** employee_id, employee_no, employee_name, education, employment_status, hire_date, resignation_date, total_career_months, skill_description, job_category, login_id, system_role, resident_no_masked.
 
-- 사번은 서버가 입사연도 + 4자리 순번으로 발급합니다. 가입 권한은 EMPLOYEE로 고정합니다.
-- 비밀번호 해시·주민번호 원문/암호화값은 응답하지 않습니다. 주민번호 표시는 `******-*******`입니다.
+- 사번은 서버가 입사연도 + 4자리 순번으로 발급합니다. 가입 시 MANAGEMENT(경영진), PM, EMPLOYEE(일반 직원)를 선택합니다. PM의 프로젝트별 수정·평가 권한은 해당 프로젝트의 PM 배정으로 판단합니다.
+- 비밀번호 해시·주민번호 원문/암호화값은 응답하지 않습니다. 주민번호는 앞 6자리만 남긴 `YYMMDD-*******` 형식으로 응답합니다.
+- 학력은 고졸 / 전문대졸(초대졸) / 대졸(학사) / 석사 / 박사 중 하나입니다. 주민번호는 앞 6자리·뒤 7자리, 실제 생년월일·세기 구분을 검사하며 본인인증을 의미하지 않습니다.
 - login_id는 대소문자를 구분하지 않고 가입 시 중복을 다시 확인합니다. 기술 검색은 `skill=Java&skill=SQL`처럼 여러 키워드를 AND로 적용합니다.
 
 ## 2. 발주처 — CLIENT
@@ -130,7 +131,7 @@
 
 | 구분 | 값 |
 | --- | --- |
-| 시스템 권한 | MANAGEMENT / EMPLOYEE — PM은 시스템 권한이 아닌 프로젝트 역할 |
+| 시스템 권한 | MANAGEMENT / PM / EMPLOYEE — PM 가입 유형과 프로젝트별 PM 배정은 구분 |
 | 재직 상태 | ACTIVE / ON_LEAVE / RESIGNED |
 | 직군 | DEVELOPER / MARKETING / BUSINESS_ADMIN / RESEARCH |
 | 프로젝트 역할 | PM / PL / ANALYST / DESIGNER / PROGRAMMER / TESTER |
@@ -153,6 +154,7 @@
 ## 팀 확인 사항
 
 - 이 문서는 구현 전 초안입니다. 현재 사이트에는 백엔드 API가 연결되어 있지 않습니다.
-- 주민번호: SQL은 암호화 컬럼 필수지만 현재 가입 화면은 수집하지 않습니다. 수집 방식을 정하거나 DB·가입 요청을 함께 변경해야 합니다.
+- 주민번호 입력·형식 검사는 프론트에 반영했습니다. 현재 브라우저에는 마스킹 값만 남깁니다. API 연결 시 원문을 HTTPS 요청으로 보내고, 서버에서 암호화해 SQL의 resident_no_encrypted에 저장해야 합니다.
+- 2026-11-12 요청에 따라 가입 유형에 PM을 추가했습니다. 기존 SQL·공유 시트의 system_role은 MANAGEMENT/EMPLOYEE만 허용하므로 서버 코드·DB 제약도 함께 조정해야 합니다. is_pm은 PM 가입 유형 또는 PM 배정 이력으로 계산하되 프로젝트별 권한은 배정으로 검사합니다.
 - JWT 인증·12시간 만료·프론트 토큰 삭제에 의한 로그아웃 및 재로그인은 협의된 방식입니다. 실제 투입 시작 전 PM의 관리 권한은 팀 확정이 필요합니다.
 - CSV는 목록과 같은 권한·조건의 전체 결과를 내보내며 page/size를 받지 않습니다.

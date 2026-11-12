@@ -5,7 +5,6 @@ import { ClientsPage } from '@/features/clients/pages/ClientsPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { EmployeesPage } from '@/features/employees/pages/EmployeesPage'
 import { EvaluationsPage } from '@/features/evaluations/pages/EvaluationsPage'
-import { GuidePage } from '@/features/demo/pages/GuidePage'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { isManagement } from '@/shared/domain/permissions'
 import { ProfilePage } from '@/features/employees/pages/ProfilePage'
@@ -50,8 +49,6 @@ export function AppRoutes({ route, onNotice }: AppRoutesProps) {
       return <ClientsPage onNotice={onNotice} />
     case 'profile':
       return <ProfilePage onNotice={onNotice} />
-    case 'guide':
-      return <GuidePage />
     default:
       return <DashboardPage />
   }

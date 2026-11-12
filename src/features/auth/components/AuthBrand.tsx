@@ -3,7 +3,7 @@ import { BrandNetwork } from '@/shared/ui/brand/BrandNetwork'
 
 export function AuthBrand() {
   return (
-    <aside className="flex min-h-screen flex-col justify-between gap-6 bg-linear-to-br from-subtle to-rose-100/60 px-14 pt-11 pb-8">
+    <aside className="sticky top-0 flex h-screen min-h-[700px] flex-col justify-between gap-6 bg-linear-to-br from-subtle to-rose-100/60 px-14 pt-11 pb-8">
       <BrandLogo className="w-[200px]" />
       <div>
         <span className="text-[10px] font-bold tracking-widest text-brand-ink">
@@ -27,7 +27,7 @@ export function AuthBrand() {
           <span>성장</span>
         </div>
       </div>
-      <small className="text-[10px] text-muted">프람트테크놀로지 · TEAM 2</small>
+      <small className="text-[10px] text-muted">© 2026 프람트테크놀로지</small>
     </aside>
   )
 }

@@ -1,3 +1,4 @@
+import { normalizeEducation } from '@/shared/model/employeeOptions'
 import { Avatar } from '@/shared/ui/data/Avatar'
 import { Badge } from '@/shared/ui/feedback/Badge'
 import { Button } from '@/shared/ui/actions/Button'
@@ -68,7 +69,7 @@ export function EmployeeDetailDialog({
       <InfoGrid>
         <div>
           <dt>최종학력</dt>
-          <dd>{e.education}</dd>
+          <dd>{normalizeEducation(e.education)}</dd>
         </div>
         <div>
           <dt>총 경력</dt>
@@ -84,7 +85,7 @@ export function EmployeeDetailDialog({
         </div>
         <div>
           <dt>주민등록번호</dt>
-          <dd>******-*******</dd>
+          <dd>{e.resident_no_masked || '******-*******'}</dd>
         </div>
         <div>
           <dt>로그인 ID</dt>
