@@ -44,7 +44,7 @@ export function Modal({
     <dialog
       ref={ref}
       className={cn(
-        'm-auto max-h-[90vh] max-w-[calc(100vw-32px)] overflow-hidden rounded-[20px] border-0 bg-white p-0 text-ink shadow-dialog',
+        'm-auto max-h-[90vh] max-w-[calc(100vw-32px)] overflow-hidden rounded-[20px] border-0 bg-white p-2 text-ink shadow-dialog',
         'backdrop:bg-ink/35 backdrop:backdrop-blur-sm',
         wide ? 'w-[720px]' : 'w-[540px]',
       )}
@@ -62,7 +62,12 @@ export function Modal({
         }
       }}
     >
-      <div className="max-h-[90vh] overflow-y-auto overscroll-contain p-7">
+      <div
+        className={cn(
+          'max-h-[calc(90vh-16px)] overflow-y-auto overscroll-contain rounded-xl p-5',
+          '[scrollbar-width:thin] [scrollbar-color:var(--color-muted)_transparent]',
+        )}
+      >
         <div className="mb-6 flex items-start justify-between gap-4 [&_h2]:text-[21px] [&_p]:mt-2 [&_p]:text-xs [&_p]:text-muted">
           <div>
             <h2 id={heading}>{title}</h2>
