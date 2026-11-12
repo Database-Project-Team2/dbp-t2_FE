@@ -7,6 +7,7 @@ import { FormActions } from '@/shared/ui/forms/FormActions'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { EDUCATIONS, normalizeEducation } from '@/shared/model/employeeOptions'
 import { Select } from '@/shared/ui/forms/Select'
+import { SecretInput } from '@/shared/ui/forms/SecretInput'
 import { Input } from '@/shared/ui/forms/Input'
 import { Modal } from '@/shared/ui/overlays/Modal'
 import { PageHeader } from '@/shared/ui/layout/PageHeader'
@@ -114,9 +115,10 @@ export function ProfilePage({ onNotice }: { onNotice: Notice }) {
                   placeholder="보유 기술과 경험을 자유롭게 작성해 주세요"
                 />
               </Field>
-              <Field label="새 비밀번호" hint="변경할 때만 입력하세요.">
-                <Input
-                  type="password"
+              <Field label="새 비밀번호" inputId="profile-password" hint="변경할 때만 입력하세요.">
+                <SecretInput
+                  label="새 비밀번호"
+                  id="profile-password"
                   autoComplete="new-password"
                   minLength={8}
                   value={password}
@@ -125,11 +127,13 @@ export function ProfilePage({ onNotice }: { onNotice: Notice }) {
               </Field>
               <Field
                 label="새 비밀번호 확인"
+                inputId="profile-confirmation"
                 error={confirmationError}
                 messageId="profile-confirmation-message"
               >
-                <Input
-                  type="password"
+                <SecretInput
+                  label="새 비밀번호 확인"
+                  id="profile-confirmation"
                   autoComplete="new-password"
                   aria-invalid={!!confirmationError}
                   aria-describedby={confirmationError ? 'profile-confirmation-message' : undefined}

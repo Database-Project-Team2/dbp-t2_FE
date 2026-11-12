@@ -1,6 +1,5 @@
 import { useRef } from 'react'
-import { cn } from '@/shared/lib/cn'
-import { controlStyles } from '@/shared/ui/forms/controlStyles'
+import { SecretInput } from '@/shared/ui/forms/SecretInput'
 import { Input } from '@/shared/ui/forms/Input'
 import type { AuthFormState } from '../hooks/useAuthForm'
 
@@ -50,18 +49,17 @@ export function ResidentNumberField({ form }: { form: AuthFormState }) {
         <span aria-hidden="true" className="text-muted">
           –
         </span>
-        <input
+        <SecretInput
+          label="주민등록번호 뒷자리"
           {...form.fieldProps('residentNo')}
           onBlur={undefined}
           ref={backRef}
           id="auth-residentNo-back"
           aria-label="주민등록번호 뒤 7자리"
           required
-          type="password"
           inputMode="numeric"
           autoComplete="off"
           maxLength={7}
-          className={cn(controlStyles, 'w-full')}
           value={back}
           placeholder="뒤 7자리"
           onChange={(event) => update(front, event.target.value.replace(/\D/g, '').slice(0, 7))}

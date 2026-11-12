@@ -1,5 +1,6 @@
 import { Button } from '@/shared/ui/actions/Button'
 import { Field } from '@/shared/ui/forms/Field'
+import { SecretInput } from '@/shared/ui/forms/SecretInput'
 import { Input } from '@/shared/ui/forms/Input'
 import type { AuthFormState } from '../hooks/useAuthForm'
 
@@ -39,10 +40,10 @@ export function CredentialFields({ form, signup }: { form: AuthFormState; signup
         error={errors.password}
         messageId="auth-password-message"
       >
-        <Input
+        <SecretInput
+          label="비밀번호"
           {...fieldProps('password')}
           required
-          type="password"
           autoComplete={signup ? 'new-password' : 'current-password'}
           minLength={signup ? 8 : undefined}
           value={values.password}
@@ -62,10 +63,10 @@ export function CredentialFields({ form, signup }: { form: AuthFormState; signup
               : undefined
           }
         >
-          <Input
+          <SecretInput
+            label="비밀번호 확인"
             {...fieldProps('confirmation')}
             required
-            type="password"
             autoComplete="new-password"
             value={values.confirmation}
             onChange={(event) => setField('confirmation', event.target.value)}
