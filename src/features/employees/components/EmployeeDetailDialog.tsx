@@ -1,5 +1,4 @@
 import { normalizeEducation } from '@/shared/model/employeeOptions'
-import { Avatar } from '@/shared/ui/data/Avatar'
 import { Badge } from '@/shared/ui/feedback/Badge'
 import { Button } from '@/shared/ui/actions/Button'
 import { careerLabel } from '@/shared/lib/format'
@@ -9,13 +8,14 @@ import { downloadCsv, csvContent } from '@/shared/lib/csv'
 import { Empty } from '@/shared/ui/feedback/Empty'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { InfoGrid } from '@/shared/ui/data/InfoGrid'
-import { ROLES, EMPLOYMENT, JOBS, EVAL_TYPES } from '@/shared/model/labels'
+import { ROLES, EVAL_TYPES } from '@/shared/model/labels'
 import { SectionHeading } from '@/shared/ui/layout/SectionHeading'
 import { Table } from '@/shared/ui/data/Table'
 import { useStore } from '@/store/StoreContext'
 import { visibleHistory, isManagement } from '@/shared/domain/permissions'
 import type { Employee } from '@/shared/model/entities'
 import type { Notice } from '@/app/routing/navigation'
+import { EmployeeIdentity } from './EmployeeIdentity'
 
 export function EmployeeDetailDialog({
   employee: e,
@@ -49,23 +49,7 @@ export function EmployeeDetailDialog({
   }
   return (
     <>
-      <div
-        className={cn(
-          'mt-1 mb-6 flex items-center gap-4 [&_h2]:flex [&_h2]:items-center [&_h2]:gap-2.5',
-          '[&_h2]:text-2xl [&_p]:mt-2 [&_p]:text-xs [&_p]:text-muted [&>span]:size-16',
-          '[&>span]:rounded-3xl [&>span]:text-lg',
-        )}
-      >
-        <Avatar name={e.employee_name} id={e.employee_id} />
-        <div>
-          <h2>
-            {e.employee_name} <Badge tone="green">{EMPLOYMENT[e.employment_status]}</Badge>
-          </h2>
-          <p>
-            {e.employee_no} · {JOBS[e.job_category]}
-          </p>
-        </div>
-      </div>
+      <EmployeeIdentity employee={e} />
       <InfoGrid>
         <div>
           <dt>최종학력</dt>

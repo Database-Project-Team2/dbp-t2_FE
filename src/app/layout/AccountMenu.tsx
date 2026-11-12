@@ -15,11 +15,7 @@ export function AccountMenu({ route }: { route: string }) {
   const { db, user, switchUser } = useStore()
   const ref = useRef<HTMLDetailsElement>(null)
   const employee = user!
-  const role = isManagement(employee)
-    ? '경영진'
-    : isPM(db, employee)
-      ? '프로젝트 매니저'
-      : '일반 직원'
+  const role = isManagement(employee) ? '경영진' : isPM(db, employee) ? 'PM' : '일반 직원'
   function closeMenu() {
     if (!ref.current) return
     ref.current.open = false
@@ -57,10 +53,16 @@ export function AccountMenu({ route }: { route: string }) {
         <span>{employee.employee_name}</span>
         <Icon name="down" size={14} className="text-muted" />
       </summary>
-      <div className="absolute top-[calc(100%+16px)] right-0 w-56 rounded-2xl border border-line bg-white p-2.5 shadow-floating">
-        <div className="mb-1 flex items-center gap-2 border-b border-line px-3 pt-2.5 pb-4">
-          <b>{employee.employee_name}</b>
-          <span className="text-[11px] text-muted">{role}</span>
+      <div className="absolute top-[calc(100%+16px)] right-0 w-80 rounded-2xl border border-line bg-white p-2.5 shadow-floating">
+        <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-2 border-b border-line px-3 pt-2.5 pb-4">
+          <b className="text-sm">{employee.employee_name}</b>
+          <span className="text-xs text-secondary">{role}</span>
+          <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-md bg-canvas px-2 py-1 text-xs">
+            <span className="text-muted">사번</span>
+            <strong className="font-semibold text-secondary tabular-nums">
+              {employee.employee_no}
+            </strong>
+          </span>
         </div>
         <a
           href="#/profile"
