@@ -76,8 +76,8 @@ export function ProfilePage({ onNotice }: { onNotice: Notice }) {
           </Button>
         }
       />
-      <Card as="section" className="max-w-[900px] px-8 py-7">
-        <EmployeeDetailDialog employee={me} onNotice={onNotice} />
+      <Card as="section" className="w-full px-8 py-7">
+        <EmployeeDetailDialog employee={me} onNotice={onNotice} layout="page" />
       </Card>
       {edit && (
         <Modal

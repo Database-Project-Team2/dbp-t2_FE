@@ -20,9 +20,11 @@ import { EmployeeIdentity } from './EmployeeIdentity'
 export function EmployeeDetailDialog({
   employee: e,
   onNotice,
+  layout = 'dialog',
 }: {
   employee: Employee
   onNotice: Notice
+  layout?: 'page' | 'dialog'
 }) {
   const { db, user } = useStore()
   const members = visibleHistory(db, user!).filter((m) => m.employee_id === e.employee_id)
@@ -50,7 +52,12 @@ export function EmployeeDetailDialog({
   return (
     <>
       <EmployeeIdentity employee={e} />
-      <InfoGrid>
+      <InfoGrid
+        className={cn(
+          layout === 'page' &&
+            'grid-cols-3 gap-x-10 gap-y-7 [&_dd]:text-sm [&_dd]:font-medium [&_dt]:text-xs',
+        )}
+      >
         <div>
           <dt>최종학력</dt>
           <dd>{normalizeEducation(e.education)}</dd>
@@ -87,37 +94,34 @@ export function EmployeeDetailDialog({
           CSV 내보내기
         </Button>
       </SectionHeading>
-      <div
-        className={cn(
-          '[&_b]:text-xs [&_b]:font-medium [&_p]:mt-1.5 [&_p]:text-[11px] [&_p]:text-muted',
-          '[&>div]:flex [&>div]:items-center [&>div]:gap-3.5 [&>div]:border-b [&>div]:border-line',
-          '[&>div]:py-4 [&>div>div]:flex-1',
-        )}
-      >
-        {members.map((m) => (
-          <div key={m.member_id}>
-            <span className="size-2 shrink-0 rounded-full border-2 border-brand-line" />
-            <div>
-              <b>{db.projects.find((p) => p.project_id === m.project_id)?.project_name}</b>
-              <p>
-                {dateLabel(m.assignment_start_date)} ~{' '}
-                {m.assignment_end_date
-                  ? dateLabel(m.assignment_end_date)
-                  : m.assignment_start_date
-                    ? '현재'
-                    : '투입 전'}
-              </p>
-            </div>
-            <Badge>{ROLES[m.project_role]}</Badge>
-          </div>
-        ))}
-        {!members.length && (
-          <Empty
-            title="아직 참여한 프로젝트가 없어요"
-            message="프로젝트에 투입되면 경력이 여기에 표시돼요."
-          />
-        )}
-      </div>
+      {members.length > 0 ? (
+        <ul className="divide-y divide-line">
+          {members.map((m) => (
+            <li key={m.member_id} className="flex items-center gap-3.5 py-4">
+              <span className="size-2 shrink-0 rounded-full border-2 border-brand-line" />
+              <div className="min-w-0 flex-1">
+                <b className="text-sm font-medium">
+                  {db.projects.find((p) => p.project_id === m.project_id)?.project_name}
+                </b>
+                <p className="mt-1.5 text-xs text-muted">
+                  {dateLabel(m.assignment_start_date)} ~{' '}
+                  {m.assignment_end_date
+                    ? dateLabel(m.assignment_end_date)
+                    : m.assignment_start_date
+                      ? '현재'
+                      : '투입 전'}
+                </p>
+              </div>
+              <Badge>{ROLES[m.project_role]}</Badge>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <Empty
+          title="아직 참여한 프로젝트가 없어요"
+          message="프로젝트에 투입되면 경력이 여기에 표시돼요."
+        />
+      )}
       {isManagement(user!) && (
         <div className="mt-7 [&_h3]:text-sm [&_h3_span]:ml-1 [&_h3_span]:text-brand-ink [&>p]:mt-2 [&>p]:mb-5 [&>p]:text-[11px] [&>p]:text-muted">
           <h3>
