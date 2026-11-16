@@ -1,5 +1,4 @@
-import { dateLabel } from '@/shared/lib/date'
-import { ongoingProjectMembers, projectStatus } from '@/shared/domain/projects'
+import { projectStatus } from '@/shared/domain/projects'
 import { Stat } from '@/shared/ui/data/Stat'
 import { useStore } from '@/store/StoreContext'
 import { employeesWithoutProjects } from '../model/dashboardOverview'
@@ -7,22 +6,14 @@ import { employeesWithoutProjects } from '../model/dashboardOverview'
 export function ManagementOverview({ date }: { date: string }) {
   const { db, today } = useStore()
   const ongoing = db.projects.filter((project) => projectStatus(project, date) === '진행 중')
-  const assigned = new Set(ongoingProjectMembers(db, date).map((member) => member.employee_id))
   return (
-    <div className="mb-8 grid grid-cols-4 rounded-[18px] border border-line bg-white py-7">
+    <div className="mb-8 grid grid-cols-3 rounded-[18px] border border-line bg-white py-7">
       <Stat
         label={date === today ? '진행 중 프로젝트' : '당시 진행 프로젝트'}
         value={ongoing.length}
         unit="개"
         detail={`전체 ${db.projects.length}개 프로젝트`}
         icon="folder"
-      />
-      <Stat
-        label="프로젝트 투입 인원"
-        value={assigned.size}
-        unit="명"
-        detail={`${dateLabel(date)} 기준 · 중복 인원 제외`}
-        icon="people"
       />
       <Stat
         label="참여 프로젝트가 없는 직원"
