@@ -1,3 +1,4 @@
+import { migrateAccountRoles } from './roleMigration.ts'
 import { freshDatabase } from './demoData.ts'
 import type { DemoState } from './types'
 
@@ -18,7 +19,7 @@ export function loadDemoState(): DemoState {
     ) {
       return freshDatabase()
     }
-    return saved
+    return migrateAccountRoles(saved)
   } catch {
     return freshDatabase()
   }

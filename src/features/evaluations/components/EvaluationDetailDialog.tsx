@@ -1,3 +1,4 @@
+import { canReadEvaluationComments } from '@/shared/domain/permissions'
 import { Avatar } from '@/shared/ui/data/Avatar'
 import { cn } from '@/shared/lib/cn'
 import { dateLabel } from '@/shared/lib/date'
@@ -5,16 +6,17 @@ import { EVAL_TYPES } from '@/shared/model/labels'
 import { InfoGrid } from '@/shared/ui/data/InfoGrid'
 import { Modal } from '@/shared/ui/overlays/Modal'
 import { useStore } from '@/store/StoreContext'
-import type { Evaluation } from '@/shared/model/entities'
+import type { EvaluationResult } from '@/shared/model/entities'
 
 export function EvaluationDetailDialog({
   evaluation: e,
   onClose,
 }: {
-  evaluation: Evaluation
+  evaluation: EvaluationResult
   onClose: () => void
 }) {
-  const { db } = useStore()
+  const { db, user } = useStore()
+  if (!canReadEvaluationComments(db, user!, e)) return null
   const target = db.members.find((m) => m.member_id === e.target_member_id)!
   const p = db.projects.find((p) => p.project_id === target.project_id)!
   const employee = db.employees.find((x) => x.employee_id === target.employee_id)!

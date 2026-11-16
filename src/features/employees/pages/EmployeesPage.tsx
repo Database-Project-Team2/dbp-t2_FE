@@ -6,6 +6,7 @@ import { Field } from '@/shared/ui/forms/Field'
 import { FilterPanel } from '@/shared/ui/forms/FilterPanel'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { Input } from '@/shared/ui/forms/Input'
+import { matchesEmployeeSearch } from '@/shared/domain/employeeSearch'
 import { isAssigned } from '@/shared/domain/assignments'
 import { JOBS, EMPLOYMENT } from '@/shared/model/labels'
 import { Modal } from '@/shared/ui/overlays/Modal'
@@ -29,14 +30,7 @@ export function EmployeesPage({ onNotice }: { onNotice: Notice }) {
   const [selected, setSelected] = useState<Employee | null>(null)
   const employees = db.employees.filter(
     (e) =>
-      (!query ||
-        (/^\d+$/.test(query) ? e.employee_no === query : e.employee_name.includes(query))) &&
-      (!job || e.job_category === job) &&
-      skill
-        .split(',')
-        .map((x) => x.trim().toLowerCase())
-        .filter(Boolean)
-        .every((x) => (e.skill_description || '').toLowerCase().includes(x)) &&
+      matchesEmployeeSearch(e, query, skill, job) &&
       (!career || e.total_career_months >= Number(career)) &&
       (!status || e.employment_status === status) &&
       (!assigned ||
@@ -60,7 +54,7 @@ export function EmployeesPage({ onNotice }: { onNotice: Notice }) {
           <SearchField
             containerClassName="min-w-[200px] flex-1"
             aria-label="직원명 또는 사번 검색"
-            placeholder="이름 또는 사번 8자리"
+            placeholder="이름 또는 사번"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -133,7 +127,7 @@ export function EmployeesPage({ onNotice }: { onNotice: Notice }) {
           <span>
             총 <b>{employees.length}</b>명
           </span>
-          <span>이름 부분 검색 · 사번 8자리 검색</span>
+          <span>이름·사번 부분 검색</span>
         </div>
         <EmployeesTable employees={employees} onSelect={setSelected} />
       </Card>

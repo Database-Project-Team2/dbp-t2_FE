@@ -1,7 +1,7 @@
 import { isManagement } from '../shared/domain/permissions.ts'
 import { nextId } from './demoData.ts'
 import { validateEvaluation, advanceWorkflow } from '../shared/domain/evaluations.ts'
-import { validateMember } from '../shared/domain/assignments.ts'
+import { validateMember, validateMemberRemoval } from '../shared/domain/assignments.ts'
 import { validateProject } from '../shared/domain/projects.ts'
 import type { Client, Employee, Evaluation, Member, Project } from '../shared/model/entities.ts'
 import type { DemoState } from './types.ts'
@@ -9,7 +9,7 @@ import type { DemoState } from './types.ts'
 /** 검증 후 새 상태를 반환합니다. React나 브라우저 저장소에는 접근하지 않습니다. */
 export function saveProjectInState(state: DemoState, user: Employee, input: Project) {
   const existing = state.projects.find((project) => project.project_id === input.project_id)
-  validateProject(state, user, input, !existing)
+  validateProject(state, user, input)
   if (existing?.actual_end_date) throw new Error('이미 종료한 프로젝트는 변경할 수 없어요.')
 
   const project: Project = {
@@ -102,4 +102,9 @@ export function saveClientInState(state: DemoState, user: Employee, input: Clien
       ? state.clients.map((current) => (current.client_id === client.client_id ? client : current))
       : [...state.clients, client],
   }
+}
+
+export function removeMemberInState(state: DemoState, user: Employee, memberId: number): DemoState {
+  validateMemberRemoval(state, user, memberId)
+  return { ...state, members: state.members.filter((member) => member.member_id !== memberId) }
 }

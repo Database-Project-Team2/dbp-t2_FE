@@ -2,96 +2,77 @@ import { useState } from 'react'
 import { DateInput } from '@/shared/ui/forms/DateInput'
 import { Button } from '@/shared/ui/actions/Button'
 import { dateLabel } from '@/shared/lib/date'
-import { isAssigned } from '@/shared/domain/assignments'
-import { isManagement, visibleProjects } from '@/shared/domain/permissions'
+import { isManagement } from '@/shared/domain/permissions'
 import { PageHeader } from '@/shared/ui/layout/PageHeader'
 import { projectStatus, ongoingProjectMembers } from '@/shared/domain/projects'
-import { Stat } from '@/shared/ui/data/Stat'
 import { useStore } from '@/store/StoreContext'
 import { DashboardDetails } from '../components/DashboardDetails'
+import { ManagementOverview } from '../components/ManagementOverview'
+import { EmployeeOverview } from '../components/EmployeeOverview'
 import { OngoingProjectsCard } from '../components/OngoingProjectsCard'
 import { PendingTasksCard } from '../components/PendingTasksCard'
+import { PersonalTasksCard } from '../components/PersonalTasksCard'
+import { personalProjects } from '../model/dashboardOverview'
 
 export function DashboardPage() {
   const { db, user, today } = useStore()
-  const me = user!
-  const manager = isManagement(me)
+  const manager = isManagement(user!)
   const [date, setDate] = useState(today)
-  const projects = visibleProjects(db, me)
-  const ongoing = projects.filter((p) => projectStatus(p, date) === '진행 중')
-  const members = ongoingProjectMembers(db, date).filter(
-    (m) => manager || m.employee_id === me.employee_id,
-  )
-  const unique = new Set(members.map((m) => m.employee_id)).size
-  const pending = projects.filter((p) => p.actual_end_date && !p.evaluation_reported_date)
-  const overdue = ongoing.filter((p) => p.planned_end_date < date)
-  const available = db.employees.filter(
-    (e) =>
-      e.employment_status === 'ACTIVE' &&
-      !db.members.some((m) => m.employee_id === e.employee_id && isAssigned(m, today)),
-  )
-  const historical = date !== today
+  const historical = manager && date !== today
+  const ongoing = manager
+    ? db.projects.filter((project) => projectStatus(project, date) === '진행 중')
+    : personalProjects(db, user!, today)
   return (
     <>
       <PageHeader
         title="업무 현황"
-        description={`${me.employee_name}님, ${manager ? '프로젝트와 팀의 주요 현황을 확인하세요.' : '참여 프로젝트와 할 일을 확인하세요.'}`}
+        description={`${user!.employee_name}님, ${manager ? '프로젝트와 팀의 주요 현황을 확인하세요.' : '참여 프로젝트와 할 일을 확인하세요.'}`}
         actions={
-          <DateInput
-            aria-label="현황 기준일"
-            value={date}
-            max={today}
-            required
-            onValueChange={(value) => value && setDate(value)}
-          />
+          manager && (
+            <DateInput
+              aria-label="현황 기준일"
+              value={date}
+              max={today}
+              required
+              onValueChange={(value) => value && setDate(value)}
+            />
+          )
         }
       />
       {historical && (
         <p className="mb-5 flex items-center gap-5 text-xs text-secondary">
-          {dateLabel(date)} 시점의 진행 프로젝트와 투입 인원을 조회 중이에요.{' '}
+          {dateLabel(date)} 시점의 진행 프로젝트와 투입 인원을 조회 중이에요.
           <Button variant="text" size="plain" onClick={() => setDate(today)}>
             오늘로 돌아가기
           </Button>
         </p>
       )}
-      <div className="mb-8 grid grid-cols-4 rounded-[18px] border border-line bg-white py-7">
-        <Stat
-          label={historical ? '당시 진행 프로젝트' : '진행 중 프로젝트'}
-          value={ongoing.length}
-          unit="개"
-          detail={`조회 가능한 전체 ${projects.length}개 프로젝트`}
-          icon="folder"
+      {manager ? <ManagementOverview date={date} /> : <EmployeeOverview />}
+      <div className="grid grid-cols-[1.15fr_1fr] items-start gap-6 [&>section]:mb-0">
+        <OngoingProjectsCard
+          projects={ongoing}
+          date={manager ? date : today}
+          historical={historical}
+          personal={!manager}
         />
-        <Stat
-          label={manager ? '프로젝트 투입 인원' : '내 투입 프로젝트'}
-          value={manager ? unique : members.length}
-          unit={manager ? '명' : '개'}
-          detail={`${dateLabel(date)} 기준 · 중복 인원 제외`}
-          icon="people"
-          tone="purple"
-        />
-        <Stat
-          label={manager ? '현재 투입 가능한 직원' : '누적 참여 프로젝트'}
-          value={manager ? available.length : projects.length}
-          unit={manager ? '명' : '개'}
-          detail={manager ? '현재 재직 중 · 오늘 미투입' : '완료한 프로젝트 포함'}
-          icon="user"
-          tone="green"
-        />
-        <Stat
-          label="고객평가 보고 대기"
-          value={pending.length}
-          unit="건"
-          detail="현재 종료 프로젝트 중 미보고"
-          icon="check"
-          tone="orange"
-        />
+        {manager ? (
+          <PendingTasksCard
+            pending={db.projects.filter(
+              (project) => project.actual_end_date && !project.evaluation_reported_date,
+            )}
+            overdue={ongoing.filter((project) => project.planned_end_date < date)}
+          />
+        ) : (
+          <PersonalTasksCard />
+        )}
       </div>
-      <div className="grid grid-cols-[1.15fr_1fr] gap-6 [&>section]:mb-0">
-        <OngoingProjectsCard projects={ongoing} date={date} historical={historical} />
-        <PendingTasksCard pending={pending} overdue={overdue} />
-      </div>
-      <DashboardDetails projects={projects} date={date} members={members} />
+      {manager && (
+        <DashboardDetails
+          projects={db.projects}
+          date={date}
+          members={ongoingProjectMembers(db, date)}
+        />
+      )}
     </>
   )
 }

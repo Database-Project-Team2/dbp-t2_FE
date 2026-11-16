@@ -18,13 +18,11 @@ const input = (overrides = {}) => ({
   total_career_months: 0,
   skill_description: ' TypeScript, SQL ',
   job_category: 'DEVELOPER',
-  system_role: 'EMPLOYEE',
   resident_no: '000229-3000000',
   ...overrides,
 })
 const credential = { salt: 'test-salt', hash: 'test-hash' }
 const formValues = (overrides = {}) => ({
-  role: 'EMPLOYEE',
   loginId: 'new.employee',
   password: 'TestOnly123!',
   confirmation: 'TestOnly123!',
@@ -62,13 +60,10 @@ test('resident number rejects invalid length, letters, dates, category and futur
   }
 })
 
-test('signup requires role, education, ID check and matching passwords', () => {
+test('signup requires education, ID check and matching passwords without choosing a role', () => {
   assert.deepEqual(signupErrors(formValues(), 'new.employee'), {})
-  const errors = signupErrors(
-    formValues({ role: '', education: '', confirmation: 'different' }),
-    '',
-  )
-  assert.match(errors.role, /선택/)
+  const errors = signupErrors(formValues({ education: '', confirmation: 'different' }), '')
+  assert.equal(errors.role, undefined)
   assert.match(errors.education, /선택/)
   assert.match(errors.loginId, /중복 확인/)
   assert.equal(errors.confirmation, '비밀번호가 일치하지 않아요.')
@@ -86,7 +81,7 @@ test('editing password or login ID invalidates the corresponding confirmation', 
   )
 })
 
-test('all three signup roles are saved and get a sequential employee number', () => {
+test('signup always assigns EMPLOYEE even if a role is injected, with sequential employee numbers', () => {
   let state = freshDatabase()
   for (const [index, role] of ['MANAGEMENT', 'PM', 'EMPLOYEE'].entries()) {
     const before = state.employees.length
@@ -95,7 +90,7 @@ test('all three signup roles are saved and get a sequential employee number', ()
       input({ login_id: 'new' + index, system_role: role }),
       credential,
     )
-    assert.equal(result.employee.system_role, role)
+    assert.equal(result.employee.system_role, 'EMPLOYEE')
     assert.equal(result.employee.employee_no, '2026' + String(index + 1).padStart(4, '0'))
     assert.equal(state.employees.length, before)
     assert.equal(result.state.employees.length, before + 1)
@@ -132,7 +127,6 @@ test('registration validates all education choices and rejects invalid inputs at
     assert.doesNotThrow(() => validateRegistration(input({ education })))
   for (const fields of [
     { education: '임의 학력' },
-    { system_role: 'ADMIN' },
     { job_category: 'UNKNOWN' },
     { employee_name: ' ' },
     { login_id: 'a' },
@@ -146,16 +140,16 @@ test('registration validates all education choices and rejects invalid inputs at
   assert.equal(normalizeEducation('대학교 졸업'), '대졸(학사)')
 })
 
-test('selecting PM does not grant management access to unassigned projects', () => {
+test('PM is granted by project membership and never grants project administration', () => {
   const state = freshDatabase()
   const { employee, state: next } = registerEmployeeInState(
     state,
     input({ system_role: 'PM' }),
     credential,
   )
-  assert(isPM(next, employee))
+  assert(!isPM(next, employee))
   assert(!isPM(next, employee, next.projects[0].project_id))
-  assert(!canManageProject(next, employee, next.projects[0]))
+  assert(!canManageProject(employee))
   assert.deepEqual(visibleProjects(next, employee), [])
   const assigned = {
     ...next,
@@ -171,8 +165,9 @@ test('selecting PM does not grant management access to unassigned projects', () 
       },
     ],
   }
-  assert(canManageProject(assigned, employee, assigned.projects[0]))
-  assert(!canManageProject(assigned, employee, assigned.projects[1]))
+  assert(isPM(assigned, employee, assigned.projects[0].project_id))
+  assert(!canManageProject(employee))
+  assert(!canManageProject(employee))
 })
 
 test('fresh, logged-out and malformed sessions do not automatically log in', () => {

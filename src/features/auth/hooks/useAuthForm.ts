@@ -23,7 +23,6 @@ export function useAuthForm(signup: boolean, onNotice: Notice) {
     months: '0',
     job: 'DEVELOPER',
     skills: '',
-    role: '',
   })
   const [checkedId, setCheckedId] = useState('')
   const [idError, setIdError] = useState('')
@@ -85,7 +84,7 @@ export function useAuthForm(signup: boolean, onNotice: Notice) {
     }
     setBusy(true)
     try {
-      if (signup && values.role) {
+      if (signup) {
         const employeeNo = await register(
           {
             employee_name: values.name,
@@ -95,7 +94,6 @@ export function useAuthForm(signup: boolean, onNotice: Notice) {
             total_career_months: Number(values.months),
             skill_description: values.skills || null,
             job_category: values.job,
-            system_role: values.role,
             resident_no: values.residentNo,
           },
           values.password,

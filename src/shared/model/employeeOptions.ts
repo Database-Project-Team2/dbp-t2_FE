@@ -1,11 +1,3 @@
-import type { SystemRole } from './entities.ts'
-
-export const ACCOUNT_ROLES: Record<SystemRole, string> = {
-  MANAGEMENT: '경영진',
-  PM: 'PM',
-  EMPLOYEE: '일반 직원',
-}
-
 export const EDUCATIONS = ['고졸', '전문대졸(초대졸)', '대졸(학사)', '석사', '박사'] as const
 
 export function normalizeEducation(education: string) {

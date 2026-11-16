@@ -26,9 +26,9 @@ export function AssignmentSnapshot({ members, date }: { members: Member[]; date:
         </div>
         <a
           className="inline-flex items-center gap-1 text-xs whitespace-nowrap text-muted hover:text-brand-ink"
-          href="#/history"
+          href={manager ? '#/history' : '#/profile'}
         >
-          이력 조회 <Icon name="arrow" size={14} />
+          {manager ? '이력 조회' : '내 경력 보기'} <Icon name="arrow" size={14} />
         </a>
       </SectionHeading>
       <div className="overflow-auto">

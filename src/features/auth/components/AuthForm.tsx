@@ -1,7 +1,6 @@
 import { Button } from '@/shared/ui/actions/Button'
 import { ErrorMessage } from '@/shared/ui/feedback/ErrorMessage'
 import type { Notice } from '@/app/routing/navigation'
-import { AccountRoleField } from './AccountRoleField'
 import { CredentialFields } from './CredentialFields'
 import { RegistrationFields } from './RegistrationFields'
 import { useAuthForm } from '../hooks/useAuthForm'
@@ -11,7 +10,6 @@ export function AuthForm({ signup, onNotice }: { signup: boolean; onNotice: Noti
   return (
     <form onSubmit={form.handleSubmit} noValidate className="mt-8">
       <fieldset disabled={form.busy} className="min-w-0">
-        {signup && <AccountRoleField form={form} />}
         {signup && <h2 className="mb-4 text-sm font-semibold">계정 정보</h2>}
         <div className="grid grid-cols-2 gap-x-4 gap-y-4">
           <CredentialFields form={form} signup={signup} />

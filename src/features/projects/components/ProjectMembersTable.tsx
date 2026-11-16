@@ -1,3 +1,4 @@
+import { canRemoveMember } from '@/shared/domain/assignments'
 import { Avatar } from '@/shared/ui/data/Avatar'
 import { Badge } from '@/shared/ui/feedback/Badge'
 import { Button } from '@/shared/ui/actions/Button'
@@ -18,14 +19,16 @@ export function ProjectMembersTable({
   manageable,
   onAdd,
   onEdit,
+  onRemove,
 }: {
   project: Project
   team: Member[]
   manageable: boolean
   onAdd: () => void
   onEdit: (member: Member) => void
+  onRemove: (member: Member) => void
 }) {
-  const { db } = useStore()
+  const { db, user } = useStore()
   return (
     <Card as="section">
       <SectionHeading>
@@ -100,13 +103,25 @@ export function ProjectMembersTable({
                   </td>
                   {manageable && (
                     <td>
-                      {!p.actual_end_date && !m.assignment_end_date ? (
-                        <Button variant="link" size="plain" onClick={() => onEdit(m)}>
-                          기간 관리
-                        </Button>
-                      ) : (
-                        <span className="text-xs text-muted">기록 확정</span>
-                      )}
+                      <div className="flex items-center gap-3">
+                        {!p.actual_end_date && !m.assignment_end_date ? (
+                          <Button variant="link" size="plain" onClick={() => onEdit(m)}>
+                            기간 관리
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted">기록 확정</span>
+                        )}
+                        {canRemoveMember(user!, m) && (
+                          <Button
+                            variant="link"
+                            size="plain"
+                            onClick={() => onRemove(m)}
+                            aria-label={`${e.employee_name} 구성원 삭제`}
+                          >
+                            삭제
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   )}
                 </tr>

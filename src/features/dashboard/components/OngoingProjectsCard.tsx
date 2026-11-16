@@ -1,3 +1,4 @@
+import { ROLES } from '@/shared/model/labels'
 import { Badge } from '@/shared/ui/feedback/Badge'
 import { Card } from '@/shared/ui/layout/Card'
 import { dateLabel } from '@/shared/lib/date'
@@ -13,18 +14,25 @@ export function OngoingProjectsCard({
   projects: ongoing,
   date,
   historical,
+  personal = false,
 }: {
   projects: Project[]
   date: string
   historical: boolean
+  personal?: boolean
 }) {
-  const { db } = useStore()
+  const { db, user } = useStore()
   return (
     <Card as="section">
       <SectionHeading>
         <div>
           <h2>
-            {historical ? '당시 진행 프로젝트' : '진행 중인 프로젝트'} <span>{ongoing.length}</span>
+            {personal
+              ? '내 참여·예정 프로젝트'
+              : historical
+                ? '당시 진행 프로젝트'
+                : '진행 중인 프로젝트'}{' '}
+            <span>{ongoing.length}</span>
           </h2>
         </div>
         <a
@@ -38,6 +46,10 @@ export function OngoingProjectsCard({
         ongoing.map((p) => {
           const team = db.members.filter(
             (m) => m.project_id === p.project_id && isAssigned(m, date),
+          )
+          const own = db.members.find(
+            (member) =>
+              member.project_id === p.project_id && member.employee_id === user!.employee_id,
           )
           const client = db.clients.find((c) => c.client_id === p.client_id)!
           return (
@@ -58,6 +70,12 @@ export function OngoingProjectsCard({
                 <div>
                   <small>{client.client_name}</small>
                   <h3>{p.project_name}</h3>
+                  {personal && own && (
+                    <p className="mt-2 text-xs text-secondary">
+                      내 역할 · {ROLES[own.project_role]}
+                      {!own.assignment_start_date && ' · 투입 전'}
+                    </p>
+                  )}
                 </div>
                 <Icon name="arrow" size={19} />
               </div>
@@ -81,8 +99,12 @@ export function OngoingProjectsCard({
         })
       ) : (
         <Empty
-          title="진행 중인 프로젝트가 없어요"
-          message="기준일을 바꾸거나 전체 프로젝트를 확인해 보세요."
+          title={personal ? '현재 참여 중인 프로젝트가 없어요' : '진행 중인 프로젝트가 없어요'}
+          message={
+            personal
+              ? '프로젝트에 배정되면 이곳에서 일정과 역할을 확인할 수 있어요.'
+              : '기준일을 바꾸거나 전체 프로젝트를 확인해 보세요.'
+          }
         />
       )}
     </Card>

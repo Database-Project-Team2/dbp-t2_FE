@@ -1,4 +1,4 @@
-export type SystemRole = 'MANAGEMENT' | 'PM' | 'EMPLOYEE'
+export type SystemRole = 'MANAGEMENT' | 'EMPLOYEE'
 
 export type Job = 'DEVELOPER' | 'MARKETING' | 'BUSINESS_ADMIN' | 'RESEARCH'
 
@@ -71,3 +71,10 @@ export interface Database {
   members: Member[]
   evaluations: Evaluation[]
 }
+
+/** 일반 구성원에게는 의견 필드를 전달하지 않습니다. */
+export type EvaluationResult = Omit<
+  Evaluation,
+  'work_performance_comment' | 'communication_comment'
+> &
+  Partial<Pick<Evaluation, 'work_performance_comment' | 'communication_comment'>>

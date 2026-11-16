@@ -74,10 +74,15 @@ test('role scopes limit projects, employee histories and evaluation results', ()
     [1, 3],
   )
   assert(visibleHistory(seed, employee).every((m) => m.employee_id === 2))
-  assert.equal(visibleEvaluations(seed, employee).length, 0)
+  assert(visibleEvaluations(seed, employee).length > 0)
   assert(
-    visibleEvaluations(seed, pm).every(
-      (e) => seed.members.find((m) => m.member_id === e.registered_by_member_id).employee_id === 5,
+    visibleEvaluations(seed, employee).every(
+      (evaluation) => !Object.hasOwn(evaluation, 'work_performance_comment'),
+    ),
+  )
+  assert(
+    visibleEvaluations(seed, pm).every((e) =>
+      [2, 4].includes(seed.members.find((m) => m.member_id === e.target_member_id).project_id),
     ),
   )
 })
@@ -202,8 +207,7 @@ test('membership period must be within project start and cannot reopen', () => {
 })
 test('closing project before an existing member period is rejected', () =>
   assert.throws(
-    () =>
-      validateProject(seed, manager, { ...seed.projects[2], actual_end_date: '2026-08-10' }, false),
+    () => validateProject(seed, manager, { ...seed.projects[2], actual_end_date: '2026-08-10' }),
     /투입기간/,
   ))
 test('self sign-up generates next year-specific employee number', () => {
@@ -218,10 +222,13 @@ test('CSV escapes quotes, newlines, and spreadsheet formulas', () => {
   assert(csv.includes('a""b\nc'))
 })
 
-test('SRH-002/003 exclude never-started memberships from employee views but retain management records', () => {
+test('assigned employees can view their projects before starting, while career remains actual history', () => {
   const db = fresh()
   const unassigned = { ...db.employees.find((e) => e.employee_id === 9), system_role: 'EMPLOYEE' }
-  assert.equal(visibleProjects(db, unassigned).length, 0)
+  assert.deepEqual(
+    visibleProjects(db, unassigned).map((project) => project.project_id),
+    [3],
+  )
   assert.equal(visibleHistory(db, unassigned).length, 0)
   assert(
     visibleHistory(db, manager).some(

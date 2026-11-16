@@ -10,6 +10,7 @@ import { type Notice, go } from '@/app/routing/navigation'
 import { useStore } from '@/store/StoreContext'
 import type { Project, Member } from '@/shared/model/entities'
 import { CustomerEvaluationCard } from '../components/CustomerEvaluationCard'
+import { RemoveMemberDialog } from '../components/RemoveMemberDialog'
 import { MemberFormDialog } from '../components/MemberFormDialog'
 import { ProjectActionDialog } from '../components/ProjectActionDialog'
 import { ProjectClientCard } from '../components/ProjectClientCard'
@@ -27,11 +28,12 @@ export function ProjectDetailPage({
   const { db, user, today } = useStore()
   const [edit, setEdit] = useState(false)
   const [member, setMember] = useState<Member | null>(null)
+  const [removing, setRemoving] = useState<Member | null>(null)
   const [workflow, setWorkflow] = useState(false)
   const [close, setClose] = useState(false)
   const team = db.members.filter((m) => m.project_id === p.project_id)
   const client = db.clients.find((c) => c.client_id === p.client_id)!
-  const manageable = canManageProject(db, user!, p)
+  const manageable = canManageProject(user!)
   const pm = isPM(db, user!, p.project_id)
   const newMember: Member = {
     member_id: 0,
@@ -89,6 +91,7 @@ export function ProjectDetailPage({
         manageable={manageable}
         onAdd={() => setMember(newMember)}
         onEdit={setMember}
+        onRemove={setRemoving}
       />
       <div className="grid grid-cols-[1.45fr_1fr] gap-6 [&>section]:min-w-0">
         <CustomerEvaluationCard
@@ -116,7 +119,7 @@ export function ProjectDetailPage({
               <small>업무수행과 커뮤니케이션, 두 가지 항목으로 평가해요.</small>
             </span>
           </div>
-          <Button variant="primary" onClick={() => go('evaluations')}>
+          <Button variant="primary" onClick={() => go('evaluations/write')}>
             평가하러 가기 <Icon name="arrow" size={16} />
           </Button>
         </div>
@@ -124,6 +127,13 @@ export function ProjectDetailPage({
       {edit && <ProjectFormDialog project={p} onClose={() => setEdit(false)} onNotice={onNotice} />}
       {member && (
         <MemberFormDialog member={member} onClose={() => setMember(null)} onNotice={onNotice} />
+      )}
+      {removing && (
+        <RemoveMemberDialog
+          member={removing}
+          onClose={() => setRemoving(null)}
+          onNotice={onNotice}
+        />
       )}
       {(workflow || close) && (
         <ProjectActionDialog

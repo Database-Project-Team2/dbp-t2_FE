@@ -2,7 +2,7 @@ import { BrandLogo } from '@/shared/ui/brand/BrandLogo'
 import { Button } from '@/shared/ui/actions/Button'
 import { cn } from '@/shared/lib/cn'
 import { Icon } from '@/shared/ui/actions/Icon'
-import { isManagement } from '@/shared/domain/permissions'
+import { canAccessPage } from '@/shared/domain/permissions'
 import { useStore } from '@/store/StoreContext'
 import { AccountMenu } from './AccountMenu'
 import { navigation } from '../routing/navigation'
@@ -14,9 +14,7 @@ interface HeaderProps {
 export function Header({ route, onSearch }: HeaderProps) {
   const { user } = useStore()
   const page = route.split('/')[0]
-  const items = navigation.filter(
-    (item) => isManagement(user!) || !['people', 'clients'].includes(item.id),
-  )
+  const items = navigation.filter((item) => canAccessPage(user!, item.id))
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur-xl">
       <div className="mx-auto flex h-[84px] max-w-[1320px] items-center gap-8 px-8">

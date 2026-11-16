@@ -9,11 +9,9 @@ import type { Project } from '@/shared/model/entities'
 
 export function EvaluationProjects({
   projects,
-  canRead,
   onWrite,
 }: {
   projects: Project[]
-  canRead: boolean
   onWrite: (project: Project) => void
 }) {
   const { db, user } = useStore()
@@ -65,12 +63,6 @@ export function EvaluationProjects({
           title="아직 평가할 프로젝트가 없어요"
           message="참여한 프로젝트가 종료되면 이곳에서 평가할 수 있어요."
         />
-      )}
-      {!canRead && (
-        <div className="my-5 flex items-center gap-2 rounded-xl bg-canvas px-4 py-3.5 text-xs leading-relaxed text-secondary">
-          <Icon name="shield" size={18} />
-          일반 직원은 동료평가를 작성할 수 있고, 평가 결과 검색은 경영진·PM에게 제공돼요.
-        </div>
       )}
     </div>
   )

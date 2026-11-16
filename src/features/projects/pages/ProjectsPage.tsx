@@ -64,7 +64,11 @@ export function ProjectsPage({ id, onNotice }: { id?: number; onNotice: Notice }
     <>
       <PageHeader
         title="프로젝트"
-        description="프로젝트를 찾고 일정과 구성원을 관리하세요."
+        description={
+          isManagement(user!)
+            ? '프로젝트를 찾고 일정과 구성원을 관리하세요.'
+            : '내가 속한 프로젝트의 일정과 구성원을 확인하세요.'
+        }
         actions={
           isManagement(user!) && (
             <Button variant="primary" onClick={() => setForm(newProject)}>

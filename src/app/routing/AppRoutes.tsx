@@ -6,7 +6,7 @@ import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { EmployeesPage } from '@/features/employees/pages/EmployeesPage'
 import { EvaluationsPage } from '@/features/evaluations/pages/EvaluationsPage'
 import { Icon } from '@/shared/ui/actions/Icon'
-import { isManagement } from '@/shared/domain/permissions'
+import { canAccessPage } from '@/shared/domain/permissions'
 import { ProfilePage } from '@/features/employees/pages/ProfilePage'
 import { ProjectsPage } from '@/features/projects/pages/ProjectsPage'
 import { useStore } from '@/store/StoreContext'
@@ -21,9 +21,8 @@ interface AppRoutesProps {
 export function AppRoutes({ route, onNotice }: AppRoutesProps) {
   const { user } = useStore()
   const [page, id] = route.split('/')
-  const managementOnly = page === 'people' || page === 'clients'
 
-  if (managementOnly && !isManagement(user!)) {
+  if (!canAccessPage(user!, page)) {
     return (
       <Card className="p-16 text-center [&>p]:my-6 [&>p]:text-muted [&>svg]:mx-auto [&>svg]:mb-5 [&>svg]:text-brand-line">
         <Icon name="shield" size={40} />
@@ -44,7 +43,13 @@ export function AppRoutes({ route, onNotice }: AppRoutesProps) {
     case 'history':
       return <AssignmentsPage onNotice={onNotice} />
     case 'evaluations':
-      return <EvaluationsPage onNotice={onNotice} />
+      return (
+        <EvaluationsPage
+          key={id}
+          initialTab={id === 'write' ? 'write' : 'results'}
+          onNotice={onNotice}
+        />
+      )
     case 'clients':
       return <ClientsPage onNotice={onNotice} />
     case 'profile':

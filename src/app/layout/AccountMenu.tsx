@@ -2,7 +2,7 @@ import { cn } from '@/shared/lib/cn'
 import { useEffect, useRef } from 'react'
 import { Avatar } from '@/shared/ui/data/Avatar'
 import { Icon } from '@/shared/ui/actions/Icon'
-import { isManagement, isPM } from '@/shared/domain/permissions'
+import { isManagement } from '@/shared/domain/permissions'
 import { useStore } from '@/store/StoreContext'
 import { go } from '../routing/navigation'
 
@@ -12,10 +12,10 @@ const itemClass = cn(
   'aria-[current=page]:bg-brand-soft aria-[current=page]:text-brand-ink',
 )
 export function AccountMenu({ route }: { route: string }) {
-  const { db, user, switchUser } = useStore()
+  const { user, switchUser } = useStore()
   const ref = useRef<HTMLDetailsElement>(null)
   const employee = user!
-  const role = isManagement(employee) ? '경영진' : isPM(db, employee) ? 'PM' : '일반 직원'
+  const role = isManagement(employee) ? '경영진' : '일반 직원'
   function closeMenu() {
     if (!ref.current) return
     ref.current.open = false

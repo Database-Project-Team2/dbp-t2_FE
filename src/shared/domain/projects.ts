@@ -1,6 +1,6 @@
 import { assert } from '../lib/assert.ts'
 import { isAssigned } from './assignments.ts'
-import { isManagement, canManageProject } from './permissions.ts'
+import { canManageProject } from './permissions.ts'
 import { today, overlapsPeriod, validateDate } from '../lib/date.ts'
 import type { Project, Database, Employee } from '../model/entities.ts'
 
@@ -34,11 +34,8 @@ export function matchesProjectSearch(
   )
 }
 
-export function validateProject(db: Database, user: Employee, project: Project, isNew: boolean) {
-  assert(
-    isNew ? isManagement(user) : canManageProject(db, user, project),
-    '프로젝트를 변경할 권한이 없어요.',
-  )
+export function validateProject(db: Database, user: Employee, project: Project) {
+  assert(canManageProject(user), '프로젝트를 변경할 권한이 없어요.')
   assert(
     project.project_name.trim() && project.project_name.length <= 200,
     '프로젝트명을 1~200자로 입력해 주세요.',

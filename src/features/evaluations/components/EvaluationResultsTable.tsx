@@ -1,3 +1,4 @@
+import { canReadEvaluationComments } from '@/shared/domain/permissions'
 import { Avatar } from '@/shared/ui/data/Avatar'
 import { Badge } from '@/shared/ui/feedback/Badge'
 import { Button } from '@/shared/ui/actions/Button'
@@ -7,16 +8,16 @@ import { EVAL_TYPES } from '@/shared/model/labels'
 import { PersonInline } from '@/shared/ui/data/PersonInline'
 import { Table } from '@/shared/ui/data/Table'
 import { useStore } from '@/store/StoreContext'
-import type { Evaluation } from '@/shared/model/entities'
+import type { EvaluationResult } from '@/shared/model/entities'
 
 export function EvaluationResultsTable({
   results,
   onSelect,
 }: {
-  results: Evaluation[]
-  onSelect: (evaluation: Evaluation) => void
+  results: EvaluationResult[]
+  onSelect: (evaluation: EvaluationResult) => void
 }) {
-  const { db } = useStore()
+  const { db, user } = useStore()
   return (
     <div className="overflow-auto">
       <Table>
@@ -79,9 +80,13 @@ export function EvaluationResultsTable({
                   </td>
                   <td>{dateLabel(e.evaluated_date)}</td>
                   <td>
-                    <Button variant="link" size="plain" onClick={() => onSelect(e)}>
-                      의견 보기
-                    </Button>
+                    {canReadEvaluationComments(db, user!, e) ? (
+                      <Button variant="link" size="plain" onClick={() => onSelect(e)}>
+                        의견 보기
+                      </Button>
+                    ) : (
+                      <span className="text-xs text-muted">점수만 공개</span>
+                    )}
                   </td>
                 </tr>
               )

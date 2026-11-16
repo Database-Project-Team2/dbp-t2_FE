@@ -8,6 +8,7 @@ import {
 import {
   saveProjectInState,
   saveMemberInState,
+  removeMemberInState,
   saveEvaluationInState,
   recordWorkflowInState,
   saveClientInState,
@@ -86,7 +87,14 @@ export function useDemoStore() {
     commit({
       ...latest,
       employees: latest.employees.map((e) =>
-        e.employee_id === me.employee_id ? { ...e, ...input } : e,
+        e.employee_id === me.employee_id
+          ? {
+              ...e,
+              education: input.education,
+              total_career_months: input.total_career_months,
+              skill_description: input.skill_description?.trim() || null,
+            }
+          : e,
       ),
       credentials: credential
         ? { ...latest.credentials, [me.employee_id]: credential }
@@ -100,6 +108,9 @@ export function useDemoStore() {
   }
   function saveMember(input: Member) {
     commit(saveMemberInState(stateRef.current, requireCurrentUser(), input))
+  }
+  function removeMember(memberId: number) {
+    commit(removeMemberInState(stateRef.current, requireCurrentUser(), memberId))
   }
   function saveEvaluation(input: Evaluation) {
     commit(saveEvaluationInState(stateRef.current, requireCurrentUser(), input))
@@ -120,6 +131,7 @@ export function useDemoStore() {
     updateProfile,
     saveProject,
     saveMember,
+    removeMember,
     saveEvaluation,
     recordWorkflow,
     saveClient,

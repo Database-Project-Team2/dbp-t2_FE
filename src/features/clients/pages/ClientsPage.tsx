@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { isManagement, visibleClients, visibleProjects } from '@/shared/domain/permissions'
 import { Button } from '@/shared/ui/actions/Button'
 import { Card } from '@/shared/ui/layout/Card'
 import { Empty } from '@/shared/ui/feedback/Empty'
@@ -11,32 +12,42 @@ import type { Notice } from '@/app/routing/navigation'
 import { ClientFormDialog } from '../components/ClientFormDialog'
 
 export function ClientsPage({ onNotice }: { onNotice: Notice }) {
-  const { db } = useStore()
+  const { db, user } = useStore()
+  const manager = isManagement(user!)
+  const projects = visibleProjects(db, user!)
   const [query, setQuery] = useState('')
   const [form, setForm] = useState<Client | null>(null)
-  const clients = db.clients.filter((c) => `${c.client_name} ${c.contact_name}`.includes(query))
+  const clients = visibleClients(db, user!).filter((c) =>
+    `${c.client_name} ${c.contact_name}`.includes(query),
+  )
 
   return (
     <>
       <PageHeader
         title="발주처"
-        description="함께 일하는 고객사와 대표 담당자를 관리하세요."
+        description={
+          manager
+            ? '함께 일하는 고객사와 대표 담당자를 관리하세요.'
+            : '내가 속한 프로젝트의 고객사와 담당자를 확인하세요.'
+        }
         actions={
-          <Button
-            variant="primary"
-            onClick={() => {
-              setForm({
-                client_id: 0,
-                client_name: '',
-                contact_name: '',
-                contact_email: '',
-                contact_phone_number: null,
-              })
-            }}
-          >
-            <Icon name="plus" size={17} />
-            발주처 등록
-          </Button>
+          manager && (
+            <Button
+              variant="primary"
+              onClick={() => {
+                setForm({
+                  client_id: 0,
+                  client_name: '',
+                  contact_name: '',
+                  contact_email: '',
+                  contact_phone_number: null,
+                })
+              }}
+            >
+              <Icon name="plus" size={17} />
+              발주처 등록
+            </Button>
+          )
         }
       />
       <Card as="section">
@@ -67,25 +78,27 @@ export function ClientsPage({ onNotice }: { onNotice: Notice }) {
               </div>
               <p>{c.contact_phone_number || '전화번호 미등록'}</p>
               <div className="mt-6 flex items-center justify-between border-t border-line pt-4 text-[11px] text-muted">
-                <span>
-                  프로젝트 {db.projects.filter((p) => p.client_id === c.client_id).length}개
-                </span>
-                <Button
-                  variant="text"
-                  size="plain"
-                  onClick={() => {
-                    setForm(c)
-                  }}
-                >
-                  정보 수정 <Icon name="arrow" size={15} />
-                </Button>
+                <span>프로젝트 {projects.filter((p) => p.client_id === c.client_id).length}개</span>
+                {manager && (
+                  <Button
+                    variant="text"
+                    size="plain"
+                    onClick={() => {
+                      setForm(c)
+                    }}
+                  >
+                    정보 수정 <Icon name="arrow" size={15} />
+                  </Button>
+                )}
               </div>
             </article>
           ))}
         </div>
         {!clients.length && <Empty />}
       </Card>
-      {form && <ClientFormDialog client={form} onClose={() => setForm(null)} onNotice={onNotice} />}
+      {manager && form && (
+        <ClientFormDialog client={form} onClose={() => setForm(null)} onNotice={onNotice} />
+      )}
     </>
   )
 }

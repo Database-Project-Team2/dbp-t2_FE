@@ -3,7 +3,7 @@ import { validateDate } from '../shared/lib/date.ts'
 import { nextEmployeeNo, normalizeId } from '../shared/domain/employees.ts'
 import { maskResidentNumber, residentNumberError } from '../shared/domain/residentNumber.ts'
 import { JOBS } from '../shared/model/labels.ts'
-import { ACCOUNT_ROLES, EDUCATIONS } from '../shared/model/employeeOptions.ts'
+import { EDUCATIONS } from '../shared/model/employeeOptions.ts'
 import type { Employee } from '../shared/model/entities.ts'
 import type { Credential, DemoState } from './types.ts'
 import { nextId } from './demoData.ts'
@@ -17,7 +17,6 @@ export type RegistrationInput = Pick<
   | 'total_career_months'
   | 'skill_description'
   | 'job_category'
-  | 'system_role'
 > & { resident_no: string }
 
 export function validateRegistration(input: RegistrationInput) {
@@ -30,7 +29,6 @@ export function validateRegistration(input: RegistrationInput) {
     EDUCATIONS.some((value) => value === input.education),
     '최종학력을 선택해 주세요.',
   )
-  assert(Object.hasOwn(ACCOUNT_ROLES, input.system_role), '가입 유형을 선택해 주세요.')
   assert(Object.hasOwn(JOBS, input.job_category), '직군을 선택해 주세요.')
   const residentError = residentNumberError(input.resident_no)
   assert(!residentError, residentError)
@@ -63,7 +61,7 @@ export function registerEmployeeInState(
     total_career_months: input.total_career_months,
     skill_description: input.skill_description?.trim() || null,
     job_category: input.job_category,
-    system_role: input.system_role,
+    system_role: 'EMPLOYEE',
     employment_status: 'ACTIVE',
     resignation_date: null,
     resident_no_masked: maskResidentNumber(input.resident_no),

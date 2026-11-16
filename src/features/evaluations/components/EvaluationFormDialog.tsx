@@ -6,7 +6,7 @@ import { Field } from '@/shared/ui/forms/Field'
 import { FormActions } from '@/shared/ui/forms/FormActions'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { Modal } from '@/shared/ui/overlays/Modal'
-import { participantMembers } from '@/shared/domain/evaluations'
+import { evaluationTargets } from '@/shared/domain/evaluationTasks'
 import { Select } from '@/shared/ui/forms/Select'
 import { type Notice, go } from '@/app/routing/navigation'
 import { useStore } from '@/store/StoreContext'
@@ -34,19 +34,7 @@ export function EvaluationFormDialog({
   const [workComment, setWorkComment] = useState('')
   const [communicationComment, setCommunicationComment] = useState('')
   const [error, setError] = useState('')
-  const participants = participantMembers(db, p).filter(
-    (m) =>
-      (type === 'CLIENT' || m.member_id !== own.member_id) &&
-      (type !== 'PM' || m.project_role !== 'PM'),
-  )
-  const already = (id: number) =>
-    db.evaluations.some(
-      (e) =>
-        e.target_member_id === id &&
-        e.evaluation_type === type &&
-        (type === 'CLIENT' || e.evaluator_member_id === own.member_id),
-    )
-  const available = participants.filter((m) => !already(m.member_id))
+  const available = evaluationTargets(db, user!, p, type)
   const client = db.clients.find((c) => c.client_id === p.client_id)!
   const blockedClient =
     type === 'CLIENT' && (!p.evaluation_requested_date || !!p.evaluation_reported_date)
@@ -116,7 +104,7 @@ export function EvaluationFormDialog({
             </Select>
           </Field>
         </div>
-        {!available.length && (
+        {!available.length && !blockedClient && (
           <div className="my-5 flex items-center gap-2 rounded-xl bg-canvas px-4 py-3.5 text-xs leading-relaxed text-secondary">
             이 유형에서 작성할 수 있는 평가를 모두 제출했어요.
           </div>

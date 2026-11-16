@@ -1,6 +1,6 @@
 import { residentNumberError } from '../../../shared/domain/residentNumber.ts'
-import { ACCOUNT_ROLES, EDUCATIONS } from '../../../shared/model/employeeOptions.ts'
-import type { Job, SystemRole } from '../../../shared/model/entities.ts'
+import { EDUCATIONS } from '../../../shared/model/employeeOptions.ts'
+import type { Job } from '../../../shared/model/entities.ts'
 import { validateDate } from '../../../shared/lib/date.ts'
 
 export interface AuthValues {
@@ -14,7 +14,6 @@ export interface AuthValues {
   months: string
   job: Job
   skills: string
-  role: SystemRole | ''
 }
 
 export type AuthErrors = Partial<Record<keyof AuthValues, string>>
@@ -23,7 +22,6 @@ export const loginIdError = (id: string) =>
 
 export function signupErrors(values: AuthValues, checkedId: string): AuthErrors {
   const errors: AuthErrors = {}
-  if (!Object.hasOwn(ACCOUNT_ROLES, values.role)) errors.role = '가입 유형을 선택해 주세요.'
   if (loginIdError(values.loginId)) errors.loginId = loginIdError(values.loginId)
   else if (checkedId !== values.loginId) errors.loginId = '로그인 ID 중복 확인을 해주세요.'
   if (values.password.length < 8) errors.password = '비밀번호를 8자 이상 입력해 주세요.'

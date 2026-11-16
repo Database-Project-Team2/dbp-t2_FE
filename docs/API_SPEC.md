@@ -1,6 +1,6 @@
 # 팀 2 API 명세
 
-수정일: 2026-11-12 · 프론트엔드 연동용 초안 · 기준: ERD v1.5의 5개 테이블과 현재 화면
+수정일: 2026-11-16 · 프론트엔드 연동용 초안 · 기준: ERD v1.5의 5개 테이블과 현재 화면
 
 ## 공통
 
@@ -9,7 +9,7 @@
 - GET의 입력은 query, POST/PATCH의 입력은 JSON body입니다. `{id}`는 경로 변수입니다.
 - 성공 응답: 단건 `{ data, meta }`, 목록 `{ data: [], page, meta }`. `meta`에는 request_id와 timestamp를 넣습니다.
 - 목록: `page=0`, `size=20` 기본값, 최대 100건. `page`에는 page/size/total_elements/total_pages/has_next를 반환합니다.
-- 생성은 201, 조회·수정은 200, 로그아웃·비밀번호 변경은 본문 없이 204입니다.
+- 생성은 201, 조회·수정은 200, 로그아웃·비밀번호 변경·구성원 삭제는 본문 없이 204입니다.
 - PATCH는 보낸 필드만 수정합니다. `?`는 선택 입력, `null`은 nullable 필드만 비울 수 있습니다.
 - 아래 응답 열은 `data`에 담기는 내용입니다. 모든 검색·조회·내보내기에 서버 권한 검사를 적용합니다.
 
@@ -40,11 +40,11 @@
 | 개인 경력 | GET `/employees/{employee_id}/career` | project_id?, project_role?, as_of?, from?, to?, ongoing_projects_only? | 프로젝트별 역할·투입 이력 | 경영진 또는 본인 |
 | 경력 다운로드 | GET `/employees/{employee_id}/career.csv` | 개인 경력과 같은 필터 | CSV | 경영진 또는 본인 |
 
-**가입 필드:** employee_name, login_id, password, resident_no, education, hire_date, total_career_months, job_category, system_role, skill_description?. 비밀번호 확인은 프론트에서 검사하고 요청에서는 제외합니다.
+**가입 필드:** employee_name, login_id, password, resident_no, education, hire_date, total_career_months, job_category, skill_description?. 비밀번호 확인은 프론트에서 검사하고 요청에서는 제외합니다.
 
 **직원 응답:** employee_id, employee_no, employee_name, education, employment_status, hire_date, resignation_date, total_career_months, skill_description, job_category, login_id, system_role, resident_no_masked.
 
-- 사번은 서버가 입사연도 + 4자리 순번으로 발급합니다. 가입 시 MANAGEMENT(경영진), PM, EMPLOYEE(일반 직원)를 선택합니다. PM의 프로젝트별 수정·평가 권한은 해당 프로젝트의 PM 배정으로 판단합니다.
+- 사번은 서버가 입사연도 + 4자리 순번으로 발급합니다. 모든 가입자는 EMPLOYEE입니다. 가입·프로필 수정 요청의 system_role은 허용하지 않습니다. MANAGEMENT는 개발자가 별도로 부여하며, PM은 경영진이 PROJECT_MEMBER.project_role로 배정합니다.
 - 비밀번호 해시·주민번호 원문/암호화값은 응답하지 않습니다. 주민번호는 앞 6자리만 남긴 `YYMMDD-*******` 형식으로 응답합니다.
 - 학력은 고졸 / 전문대졸(초대졸) / 대졸(학사) / 석사 / 박사 중 하나입니다. 주민번호는 앞 6자리·뒤 7자리, 실제 생년월일·세기 구분을 검사하며 본인인증을 의미하지 않습니다.
 - login_id는 대소문자를 구분하지 않고 가입 시 중복을 다시 확인합니다. 기술 검색은 `skill=Java&skill=SQL`처럼 여러 키워드를 AND로 적용합니다.
@@ -53,23 +53,23 @@
 
 | 기능 | 메서드·경로 | 입력 | 응답 | 권한 |
 | --- | --- | --- | --- | --- |
-| 발주처 검색 | GET `/clients` | query? — 회사명 또는 담당자명 | 발주처 목록 | 경영진 |
-| 발주처 상세 | GET `/clients/{client_id}` | 없음 | 발주처 정보 | 경영진 |
+| 발주처 검색 | GET `/clients` | query? — 회사명 또는 담당자명 | 발주처 목록 | 경영진 전체 / 직원 본인 소속 프로젝트의 발주처 |
+| 발주처 상세 | GET `/clients/{client_id}` | 없음 | 발주처 정보 | 경영진 또는 해당 발주처 프로젝트 구성원 |
 | 발주처 등록 | POST `/clients` | client_name, contact_name, contact_email, contact_phone_number? | 생성된 발주처 | 경영진 |
 | 발주처 수정 | PATCH `/clients/{client_id}` | 등록 필드 중 변경할 값 | 수정된 발주처 | 경영진 |
 
-응답은 등록 필드에 client_id를 추가합니다. 대표 담당자는 한 명이며, 변경 이력은 저장하지 않습니다. 일반 직원은 참여 프로젝트 상세에서 해당 발주처 연락처만 확인합니다.
+응답은 등록 필드에 client_id를 추가합니다. 대표 담당자는 한 명이며, 변경 이력은 저장하지 않습니다. 일반 직원은 본인 소속 프로젝트의 발주처만 목록·상세에서 조회합니다. 발주처별 프로젝트 수도 같은 조회 범위로 집계합니다.
 
 ## 3. 프로젝트 — PROJECT
 
 | 기능 | 메서드·경로 | 입력 | 응답 | 권한 |
 | --- | --- | --- | --- | --- |
-| 목록·검색 | GET `/projects` | project_name?, client_name?, status?, as_of?, from?, to? | 프로젝트 목록 | 경영진 전체 / 직원 본인 실제 참여 |
-| 상세 | GET `/projects/{project_id}` | 없음 | 프로젝트 + 발주처 + 본인 역할 + permissions + 고객평가 집계 | 경영진 또는 실제 참여자 |
+| 목록·검색 | GET `/projects` | project_name?, client_name?, status?, as_of?, from?, to? | 프로젝트 목록 | 경영진 전체 / 직원 본인 소속 (투입 전 포함) |
+| 상세 | GET `/projects/{project_id}` | 없음 | 프로젝트 + 발주처 + 본인 역할 + permissions + 고객평가 집계 | 경영진 또는 프로젝트 구성원 |
 | 등록 | POST `/projects` | project_name, client_id, actual_start_date, planned_end_date | 생성된 프로젝트 상세 | 경영진 |
-| 수정 | PATCH `/projects/{project_id}` | 등록 필드 중 변경할 값 | 수정된 프로젝트 상세 | 경영진 또는 해당 PM |
-| 종료 | POST `/projects/{project_id}/close` | actual_end_date | project, closed_member_ids | 경영진 또는 해당 PM |
-| 수정용 발주처 선택 | GET `/projects/{project_id}/client-options` | client_name? | client_id, client_name 목록 | 경영진 또는 해당 PM |
+| 수정 | PATCH `/projects/{project_id}` | 등록 필드 중 변경할 값 | 수정된 프로젝트 상세 | 경영진 |
+| 종료 | POST `/projects/{project_id}/close` | actual_end_date | project, closed_member_ids | 경영진 |
+| 수정용 발주처 선택 | GET `/projects/{project_id}/client-options` | client_name? | client_id, client_name 목록 | 경영진 |
 | 고객평가 단계 기록 | PATCH `/projects/{project_id}/customer-evaluation` | step, processed_date | 처리 날짜·workflow_status·participant_count·received_count | 해당 PM |
 | 업무 현황 | GET `/dashboard` | as_of? | metrics, ongoing_projects, tasks 등 | 로그인 사용자, 본인 조회 범위 |
 
@@ -80,22 +80,26 @@
 - 실제 착수일 ≤ 오늘, 예정 종료일 ≥ 착수일. 예정일이 지나도 실제 종료 전에는 진행 중입니다.
 - 종료 시 아직 끝나지 않은 실제 투입 구성원의 종료일도 함께 저장합니다. 투입 전 구성원은 유지합니다.
 - 고객평가 step: `REQUEST → RECEIVE → REPORT`. 의뢰 후 실제 참여자 전원의 고객평가가 있어야 회수할 수 있습니다. 이메일 발송 기능은 아닙니다.
-- 대시보드는 진행 프로젝트 수, 투입 인원(중복 제거), 미투입 직원 수, 고객평가 보고 대기를 반환합니다. 타 직원 인원 지표는 경영진만 조회합니다.
+- 경영진 대시보드: 진행 프로젝트·중복 제거 투입 인원·참여 프로젝트가 없는 재직 직원·고객평가 보고 대기. 참여 없음은 종료되지 않은 프로젝트의 투입 중/투입 전 배정이 모두 없는 ACTIVE 직원입니다. 다른 프로젝트 참여 중인 직원도 추가 배정할 수 있습니다.
+- 직원 대시보드: 내 참여·투입 예정 프로젝트, 유형별 미제출 평가 건수와 할 일. 현재 PM 배정이 있으면 본인 PM 프로젝트 중 예정 종료일이 오늘~7일 후인 프로젝트를 상단에 표시합니다. 종료·기한 경과·본인 투입 종료 프로젝트는 D-7 안내에서 제외합니다.
 
 ## 4. 프로젝트 구성원·투입 이력 — PROJECT_MEMBER
 
 | 기능 | 메서드·경로 | 입력 | 응답 | 권한 |
 | --- | --- | --- | --- | --- |
-| 구성원 목록 | GET `/projects/{project_id}/members` | as_of? | 구성원 + 직원 이름·사번·직군 | 경영진 또는 실제 참여자 |
-| 추가 가능한 직원 | GET `/projects/{project_id}/member-candidates` | employee_name?, job_category? | ACTIVE·해당 프로젝트 미등록 직원 목록 | 경영진 또는 해당 PM |
-| 구성원 추가 | POST `/projects/{project_id}/members` | employee_id, project_role, assignment_start_date?, assignment_end_date? | 생성된 구성원 | 경영진 또는 해당 PM |
-| 투입기간 수정 | PATCH `/members/{member_id}/assignment` | assignment_start_date?, assignment_end_date? | 수정된 구성원 | 경영진 또는 해당 PM |
-| 투입 이력 검색 | GET `/assignments` | employee_name?, employee_id?, project_id?, project_role?, as_of?, from?, to?, ongoing_projects_only? | 구성원 + 직원 요약 + 프로젝트 | 경영진 전체 / 직원 본인 실제 투입 |
+| 구성원 목록 | GET `/projects/{project_id}/members` | as_of? | 구성원 + 직원 이름·사번·직군 | 경영진 또는 프로젝트 구성원 |
+| 추가 가능한 직원 | GET `/projects/{project_id}/member-candidates` | employee_name?, employee_no?, job_category?, skill? | 이름·사번·직군·기술 포함 ACTIVE·해당 프로젝트 미등록 직원 목록 | 경영진 |
+| 구성원 추가 | POST `/projects/{project_id}/members` | employee_id, project_role, assignment_start_date?, assignment_end_date? | 생성된 구성원 | 경영진 |
+| 투입기간 수정 | PATCH `/members/{member_id}/assignment` | assignment_start_date?, assignment_end_date? | 수정된 구성원 | 경영진 |
+| 투입 전 구성원 삭제 | DELETE `/members/{member_id}` | 없음 | 204 | 경영진 |
+| 투입 이력 검색 | GET `/assignments` | employee_name?, employee_id?, project_id?, project_role?, as_of?, from?, to?, ongoing_projects_only? | 구성원 + 직원 요약 + 프로젝트 | 경영진 |
 | 이력 다운로드 | GET `/assignments/export.csv` | 투입 이력과 같은 필터 | CSV | 이력 조회와 동일 |
 
 **구성원 기본 응답:** member_id, project_id, employee_id, project_role, assignment_start_date, assignment_end_date. 조회에는 employee 요약과 assignment_status를 추가합니다.
 
+- 직원과 프로젝트는 다대다 관계로 다른 프로젝트에 동시에 참여할 수 있습니다. 후보 검색에서 다른 프로젝트 참여 여부로 제외하지 않습니다.
 - 같은 직원은 한 프로젝트에 한 번만 등록합니다. 최초 역할은 고정이며 종료 후 재투입은 지원하지 않습니다.
+- 시작·종료일이 모두 null인 투입 전 구성원만 삭제할 수 있습니다. 실제 투입 이력을 투입 전으로 되돌려 삭제하는 것도 금지합니다. 삭제는 해당 배정만 제거하며 계정과 다른 프로젝트 이력은 유지합니다.
 - 시작일이 null이면 투입 전입니다. 실제 시작일은 입사일·프로젝트 착수일 이상, 종료일은 시작일 이상이며 실제 날짜는 오늘 이하여야 합니다.
 - 종료된 프로젝트·종료된 투입기간은 수정할 수 없습니다. 신규·변경 투입은 ACTIVE 직원만 가능합니다.
 - 기준일 검색은 시작·종료일 당일을 포함합니다. 기간 검색은 겹치는 구간을 찾고, null 종료일은 열린 구간으로 처리합니다.
@@ -107,8 +111,8 @@
 | 평가 가능한 프로젝트 | GET `/evaluations/eligible-projects` | 없음 | 종료된 본인 참여 프로젝트 + 허용 평가 유형 | 실제 참여자 |
 | 평가 대상 선택 | GET `/projects/{project_id}/evaluation-options` | evaluation_type | available_targets, evaluator, can_submit, blocked_reason 등 | 실제 참여자, 유형별 역할 검사 |
 | 평가 등록 | POST `/evaluations` | 아래 평가 필드 | evaluation_id, project_id, target_member_id, evaluation_type, evaluated_date | 동료: 실제 참여자 / 고객·PM: 해당 PM |
-| 결과 검색 | GET `/evaluations` | target_employee_name?, target_employee_id?, project_id?, evaluation_type?, from?, to? | 평가 결과 목록 | 경영진 전체 / PM 본인 작성·등록 |
-| 결과 상세 | GET `/evaluations/{evaluation_id}` | 없음 | 점수·의견·평가자·등록자 | 결과 조회 범위와 동일 |
+| 결과 검색 | GET `/evaluations` | target_employee_name?, target_employee_id?, project_id?, evaluation_type?, from?, to? | 평가 결과 목록 | 경영진 전체 / 직원 본인 소속 프로젝트 |
+| 결과 상세 | GET `/evaluations/{evaluation_id}` | 없음 | 점수·평가자·등록자 + 허용 시 의견 | 결과 조회 범위와 동일 |
 | 결과 다운로드 | GET `/evaluations/export.csv` | 결과 검색과 같은 필터 | CSV | 결과 조회 범위와 동일 |
 
 **평가 등록 필드:** target_member_id, evaluation_type, evaluated_date, work_performance_score, work_performance_comment, communication_score, communication_comment. 전부 필수입니다.
@@ -125,13 +129,13 @@
 - 등록자와 내부 평가자는 로그인 정보로 서버가 결정합니다. CLIENT의 evaluator_member_id는 null입니다.
 - 내부 평가는 같은 대상·유형·평가자 조합 중복 금지, CLIENT는 대상당 한 번입니다. CLIENT 중복은 SQL의 nullable UNIQUE만으로 막을 수 없어 서버에서도 검사해야 합니다.
 - 고객평가는 의뢰일 이후 등록하고 보고 후에는 추가하지 않습니다. 회수일은 모든 고객평가일 이상이어야 합니다.
-- 일반 직원은 동료평가를 작성할 수 있지만 평가 결과 목록·상세·CSV는 조회할 수 없습니다.
+- 일반 직원도 소속 프로젝트의 평가 점수를 조회·다운로드합니다. 의견 두 필드는 경영진과 해당 프로젝트 PM에게만 응답합니다. 다른 프로젝트에서 PM이어도 이 프로젝트의 일반 구성원이면 의견은 제외합니다. CSV에도 동일한 행·의견 권한을 적용합니다.
 
 ## 공통 코드·오류
 
 | 구분 | 값 |
 | --- | --- |
-| 시스템 권한 | MANAGEMENT / PM / EMPLOYEE — PM 가입 유형과 프로젝트별 PM 배정은 구분 |
+| 시스템 권한 | MANAGEMENT / EMPLOYEE — PM은 프로젝트 역할에만 존재 |
 | 재직 상태 | ACTIVE / ON_LEAVE / RESIGNED |
 | 직군 | DEVELOPER / MARKETING / BUSINESS_ADMIN / RESEARCH |
 | 프로젝트 역할 | PM / PL / ANALYST / DESIGNER / PROGRAMMER / TESTER |
@@ -155,6 +159,6 @@
 
 - 이 문서는 구현 전 초안입니다. 현재 사이트에는 백엔드 API가 연결되어 있지 않습니다.
 - 주민번호 입력·형식 검사는 프론트에 반영했습니다. 현재 브라우저에는 마스킹 값만 남깁니다. API 연결 시 원문을 HTTPS 요청으로 보내고, 서버에서 암호화해 SQL의 resident_no_encrypted에 저장해야 합니다.
-- 2026-11-12 요청에 따라 가입 유형에 PM을 추가했습니다. 기존 SQL·공유 시트의 system_role은 MANAGEMENT/EMPLOYEE만 허용하므로 서버 코드·DB 제약도 함께 조정해야 합니다. is_pm은 PM 가입 유형 또는 PM 배정 이력으로 계산하되 프로젝트별 권한은 배정으로 검사합니다.
-- JWT 인증·12시간 만료·프론트 토큰 삭제에 의한 로그아웃 및 재로그인은 협의된 방식입니다. 실제 투입 시작 전 PM의 관리 권한은 팀 확정이 필요합니다.
+- 2026-11-16 피드백을 우선 적용했습니다. system_role은 기존 SQL의 MANAGEMENT/EMPLOYEE를 유지합니다. is_pm은 PM 배정 여부를 나타내는 표시용 값이며 관리 권한 판정에 사용하지 않습니다. 서버에서도 프로젝트별 배정을 조회해 평가 권한을 검사해야 합니다.
+- JWT 인증·12시간 만료·프론트 토큰 삭제에 의한 로그아웃 및 재로그인은 협의된 방식입니다. PM은 투입 시작 여부와 무관하게 프로젝트·구성원 관리 권한이 없습니다. 평가 작성은 실제 투입자만 가능합니다.
 - CSV는 목록과 같은 권한·조건의 전체 결과를 내보내며 page/size를 받지 않습니다.
