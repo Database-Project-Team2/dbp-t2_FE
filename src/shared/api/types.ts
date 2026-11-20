@@ -142,3 +142,13 @@ export interface EmployeeDashboard {
     days_left: number
   }[]
 }
+
+export interface MemberCandidate {
+  employee_id: number
+  employee_no: string
+  employee_name: string
+  job_category: Job
+  skill_description: string | null
+  hire_date: string
+  total_career_months: number
+}

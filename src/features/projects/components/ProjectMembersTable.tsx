@@ -12,7 +12,7 @@ import { SectionHeading } from '@/shared/ui/layout/SectionHeading'
 import { Table } from '@/shared/ui/data/Table'
 import { useSession } from '@/app/session/SessionContext'
 import type { MemberView } from '@/shared/api/types'
-import type { Project, Member } from '@/shared/model/entities'
+import type { Project } from '@/shared/model/entities'
 
 export function ProjectMembersTable({
   project: p,
@@ -26,8 +26,8 @@ export function ProjectMembersTable({
   team: MemberView[]
   manageable: boolean
   onAdd: () => void
-  onEdit: (member: Member) => void
-  onRemove: (member: Member) => void
+  onEdit: (member: MemberView) => void
+  onRemove: (member: MemberView) => void
 }) {
   const { user } = useSession()
   return (

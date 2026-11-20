@@ -29,3 +29,12 @@ export async function logout(page: Page) {
   await page.getByRole('button', { name: '로그아웃' }).click()
   await expect(page.getByRole('button', { name: '로그인', exact: true })).toBeVisible()
 }
+
+/** Asia/Seoul 기준 오늘에서 days만큼 더한 날짜. */
+export const seoulDate = (days: number) => {
+  const date = new Date(`${seoulToday()}T00:00:00Z`)
+  date.setUTCDate(date.getUTCDate() + days)
+  return date.toISOString().slice(0, 10)
+}
+
+export const dotted = (date: string) => date.replaceAll('-', '.')

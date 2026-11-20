@@ -64,8 +64,8 @@ export function ProjectDetailPage({
 }) {
   const { today } = useSession()
   const [edit, setEdit] = useState(false)
-  const [member, setMember] = useState<Member | null>(null)
-  const [removing, setRemoving] = useState<Member | null>(null)
+  const [member, setMember] = useState<Member | MemberView | null>(null)
+  const [removing, setRemoving] = useState<MemberView | null>(null)
   const [workflow, setWorkflow] = useState(false)
   const [close, setClose] = useState(false)
   const client = p.client

@@ -28,3 +28,15 @@ export async function apiLogin(loginId: string, password = 'demo1234') {
   await context.dispose()
   return body.data.access_token as string
 }
+
+/** 장면 1의 신규 직원을 API로 가입시킵니다(입사일 오늘). */
+export async function registerNewbie(hireDate: string) {
+  const context = await apiContext()
+  const response = await context.post('employees', { data: { ...NEWBIE, hire_date: hireDate } })
+  if (response.status() !== 201) throw new Error(`신규 직원 가입 실패: ${await response.text()}`)
+  const body = await response.json()
+  await context.dispose()
+  return body.data.employee.employee_id as number
+}
+
+export const NEW_PROJECT = '새봄 학습관리 시스템'

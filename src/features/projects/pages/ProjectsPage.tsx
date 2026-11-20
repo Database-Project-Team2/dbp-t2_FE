@@ -10,7 +10,6 @@ import { PageHeader } from '@/shared/ui/layout/PageHeader'
 import { SearchField } from '@/shared/ui/forms/SearchField'
 import { TabButton } from '@/shared/ui/actions/TabButton'
 import type { Notice } from '@/app/routing/navigation'
-import { useStore } from '@/store/StoreContext'
 import { useSession } from '@/app/session/SessionContext'
 import { isManagement } from '@/shared/domain/permissions'
 import { projectsApi } from '@/shared/api/resources'
@@ -23,7 +22,6 @@ import { ProjectFormDialog } from '../components/ProjectFormDialog'
 import { ProjectGrid } from '../components/ProjectGrid'
 
 export function ProjectsPage({ id, onNotice }: { id?: number; onNotice: Notice }) {
-  const { db } = useStore()
   const { user, today } = useSession()
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState('전체')
@@ -64,7 +62,7 @@ export function ProjectsPage({ id, onNotice }: { id?: number; onNotice: Notice }
   const newProject: Project = {
     project_id: 0,
     project_name: '',
-    client_id: db.clients[0]?.client_id || 0,
+    client_id: 0,
     actual_start_date: today,
     planned_end_date: today,
     actual_end_date: null,

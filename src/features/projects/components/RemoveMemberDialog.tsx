@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { Member } from '@/shared/model/entities'
 import type { Notice } from '@/app/routing/navigation'
-import { useStore } from '@/store/StoreContext'
+import { membersApi } from '@/shared/api/resources'
+import type { EmployeeSummary } from '@/shared/api/types'
 import { Modal } from '@/shared/ui/overlays/Modal'
 import { Button } from '@/shared/ui/actions/Button'
 import { ErrorMessage } from '@/shared/ui/feedback/ErrorMessage'
@@ -12,20 +13,24 @@ export function RemoveMemberDialog({
   onClose,
   onNotice,
 }: {
-  member: Member
+  member: Member & { employee: EmployeeSummary }
   onClose: () => void
   onNotice: Notice
 }) {
-  const { db, removeMember } = useStore()
   const [error, setError] = useState('')
-  const employee = db.employees.find((item) => item.employee_id === member.employee_id)!
-  function remove() {
+  const [busy, setBusy] = useState(false)
+  const employee = member.employee
+  async function remove() {
+    if (busy) return
+    setBusy(true)
     try {
-      removeMember(member.member_id)
+      await membersApi.remove(member.member_id)
       onClose()
       onNotice('투입 전 구성원을 삭제했어요.')
     } catch (err) {
       setError((err as Error).message)
+    } finally {
+      setBusy(false)
     }
   }
   return (
@@ -40,7 +45,9 @@ export function RemoveMemberDialog({
         <Button variant="secondary" onClick={onClose}>
           취소
         </Button>
-        <Button onClick={remove}>구성원 삭제</Button>
+        <Button onClick={remove} disabled={busy}>
+          구성원 삭제
+        </Button>
       </FormActions>
     </Modal>
   )

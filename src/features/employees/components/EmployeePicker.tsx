@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { matchesEmployeeSearch, memberCandidates } from '@/shared/domain/employeeSearch'
 import { JOBS } from '@/shared/model/labels'
 import { Avatar } from '@/shared/ui/data/Avatar'
 import { Button } from '@/shared/ui/actions/Button'
@@ -7,7 +6,9 @@ import { Empty } from '@/shared/ui/feedback/Empty'
 import { Field } from '@/shared/ui/forms/Field'
 import { SearchField } from '@/shared/ui/forms/SearchField'
 import { cn } from '@/shared/lib/cn'
-import { useStore } from '@/store/StoreContext'
+import { projectsApi } from '@/shared/api/resources'
+import { useApi } from '@/shared/api/useApi'
+import type { MemberCandidate } from '@/shared/api/types'
 
 export function EmployeePicker({
   projectId,
@@ -18,12 +19,26 @@ export function EmployeePicker({
   value: number
   onSelect: (employeeId: number) => void
 }) {
-  const { db } = useStore()
   const [query, setQuery] = useState('')
   const [skills, setSkills] = useState('')
-  const candidates = memberCandidates(db, projectId)
-  const results = candidates.filter((employee) => matchesEmployeeSearch(employee, query, skills))
-  const selected = candidates.find((employee) => employee.employee_id === value)
+  const [picked, setPicked] = useState<MemberCandidate | null>(null)
+  // 서버가 재직 중이고 이 프로젝트에 없는 직원만 돌려줍니다. 숫자만 입력하면 사번으로 찾습니다.
+  const term = query.trim()
+  const byNumber = /^\d+$/.test(term)
+  const { data } = useApi(
+    () =>
+      projectsApi.candidates(projectId, {
+        employee_name: byNumber ? undefined : term,
+        employee_no: byNumber ? term : undefined,
+        skill: skills
+          .split(',')
+          .map((skill) => skill.trim())
+          .filter(Boolean),
+      }),
+    [projectId, term, skills],
+  )
+  const results = data?.data ?? []
+  const selected = picked && picked.employee_id === value ? picked : null
   return (
     <fieldset className="mb-6 min-w-0">
       <legend className="mb-3 text-sm font-semibold">추가할 직원</legend>
@@ -64,7 +79,10 @@ export function EmployeePicker({
               name="member-employee"
               value={employee.employee_id}
               checked={value === employee.employee_id}
-              onChange={() => onSelect(employee.employee_id)}
+              onChange={() => {
+                setPicked(employee)
+                onSelect(employee.employee_id)
+              }}
             />
             <Avatar name={employee.employee_name} id={employee.employee_id} small />
             <span className="min-w-0 flex-1">
