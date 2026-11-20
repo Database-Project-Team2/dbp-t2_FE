@@ -20,7 +20,7 @@ npm run dev
 ```bash
 npm run build   # TypeScript 검사 + dist 빌드
 npm run lint    # Oxlint
-npm test        # 업무 규칙 테스트
+npm test        # 프런트 단위 테스트
 npm run preview
 ```
 
@@ -48,9 +48,9 @@ npm run dev
 npm run e2e                  # Playwright: 로컬 Spring(8080)·Vite(5173)를 띄워 장면 1~5 실행(DB를 시드로 초기화)
 ```
 
-시드 계정: demo01(경영진), demo05(프로젝트 2·4 PM), demo02·demo03(일반 직원), 비밀번호 demo1234. 회원가입자는 모두 일반 직원이며 사번은 서버가 발급합니다. 주민번호는 서버가 암호화해 저장하고 `YYMMDD-*******`로만 응답합니다.
+백엔드 시드 계정: demo01(경영진), demo05(프로젝트 2·4 PM), demo02·demo03(일반 직원), 비밀번호 demo1234. 회원가입자는 모두 일반 직원이며 사번은 서버가 발급합니다. 주민번호는 서버가 암호화해 저장하고 `YYMMDD-*******`로만 응답합니다.
 
-`src/store/`와 일부 `shared/domain` 함수는 이전 목업 구현으로, 앱에서는 쓰지 않고 `tests/`의 업무 규칙 테스트에서만 사용합니다.
+직원·프로젝트·평가 데이터와 시드 계정은 백엔드에서 관리합니다. 프런트 단위 테스트는 필요한 입력과 API 응답 예시를 각 테스트 안에 정의합니다.
 
 이메일 발송·인센티브 자동 계산은 없습니다.
 
@@ -91,17 +91,15 @@ src/
       layout/           # 카드·제목
       brand/            # 로고·브랜드 그래픽
     model/              # DB 타입·표시용 코드명
-    domain/             # 권한·투입·평가 업무 규칙
+    domain/             # 화면 접근·구성원 삭제 버튼·가입 입력 검증
     lib/                # 날짜·CSV·Tailwind 클래스 병합
   app/session/          # 로그인 상태(토큰·/auth/me·server_today)
   shared/api/           # API 클라이언트·응답 타입·리소스 함수·useApi
-  store/                # 이전 목업 구현(테스트 전용)
   styles/
     index.css           # Tailwind 진입점
     theme.css           # 브랜드 색·글꼴·그림자
     base.css            # 브라우저 기본값·접근성
   assets/               # 로고·파비콘
-  data/seed.json        # 제공 SQL의 가상 데이터
 ```
 
 `main.tsx → app/App.tsx → app/layout/Workspace.tsx → app/routing/AppRoutes.tsx` 순서로 시작하세요. 이후 해당 업무의 `pages`에서 화면 구성을 보고, 같은 업무의 `components`에서 필요한 카드·표·폼을 찾으면 됩니다. 여러 단계의 `../../../` 대신 `@/shared/...`처럼 `src` 기준 경로를 사용합니다.
@@ -124,7 +122,7 @@ src/
 npm run format        # 코드 형식과 Tailwind 클래스 순서 자동 정리
 npm run format:check  # 형식 확인
 npm run lint          # 코드 검사
-npm test              # 업무 규칙·상태 변경 테스트
+npm test              # 프런트 단위 테스트
 npm run build         # TypeScript 검사와 배포 빌드
 ```
 
