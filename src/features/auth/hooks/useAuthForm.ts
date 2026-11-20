@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { go, type Notice } from '@/app/routing/navigation'
-import { useStore } from '@/store/StoreContext'
+import { useSession } from '@/app/session/SessionContext'
 import {
   loginIdError,
   signupErrors,
@@ -11,7 +11,7 @@ import {
 
 /** 입력·필드별 검증을 관리하고, 저장은 store에 위임합니다. */
 export function useAuthForm(signup: boolean, onNotice: Notice) {
-  const { login, register, isIdAvailable, today } = useStore()
+  const { login, register, checkLoginId, today } = useSession()
   const [values, setValues] = useState<AuthValues>({
     loginId: '',
     password: '',
@@ -62,12 +62,18 @@ export function useAuthForm(signup: boolean, onNotice: Notice) {
       'aria-describedby': errors[name] ? `auth-${name}-message` : undefined,
     }
   }
-  function checkId() {
-    const message =
-      loginIdError(values.loginId) ||
-      (isIdAvailable(values.loginId) ? '' : '이미 사용 중인 ID예요.')
+  async function checkId() {
+    const loginId = values.loginId
+    let message = loginIdError(loginId)
+    if (!message) {
+      try {
+        message = (await checkLoginId(loginId)) ? '' : '이미 사용 중인 ID예요.'
+      } catch (error) {
+        message = (error as Error).message
+      }
+    }
     setIdError(message)
-    setCheckedId(message ? '' : values.loginId)
+    setCheckedId(message ? '' : loginId)
     setTouched((previous) => ({ ...previous, loginId: true }))
   }
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -85,19 +91,17 @@ export function useAuthForm(signup: boolean, onNotice: Notice) {
     setBusy(true)
     try {
       if (signup) {
-        const employeeNo = await register(
-          {
-            employee_name: values.name,
-            login_id: values.loginId,
-            education: values.education,
-            hire_date: values.hire,
-            total_career_months: Number(values.months),
-            skill_description: values.skills || null,
-            job_category: values.job,
-            resident_no: values.residentNo,
-          },
-          values.password,
-        )
+        const employeeNo = await register({
+          employee_name: values.name,
+          login_id: values.loginId,
+          password: values.password,
+          education: values.education,
+          hire_date: values.hire,
+          total_career_months: Number(values.months),
+          skill_description: values.skills || null,
+          job_category: values.job,
+          resident_no: values.residentNo,
+        })
         onNotice(`가입이 완료됐어요. 새 사번은 ${employeeNo}예요.`)
       } else await login(values.loginId, values.password)
       go('dashboard')

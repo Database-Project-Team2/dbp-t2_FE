@@ -1,11 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { onUnauthorized } from '../shared/api/client'
-import {
-  loadDemoState,
-  persistDemoState,
-  loadSessionUserId,
-  persistSessionUserId,
-} from './browserStorage'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { loadDemoState, persistDemoState } from './browserStorage'
 import {
   saveProjectInState,
   saveMemberInState,
@@ -14,66 +8,44 @@ import {
   recordWorkflowInState,
   saveClientInState,
 } from './mutations'
-import {
-  registerEmployeeInState,
-  validateRegistration,
-  type RegistrationInput,
-} from './registration'
 import { EDUCATIONS } from '../shared/model/employeeOptions'
 import { makeCredential, requirePassword } from './credentials'
-import { normalizeId } from '../shared/domain/employees'
-import { today } from '../shared/lib/date'
+import { useSession } from '../app/session/SessionContext'
 import type { Client, Employee, Evaluation, Member, Project } from '../shared/model/entities'
 import type { DemoState } from './types'
 
+/** 서버 로그인 사용자를 목업 데이터에 같은 employee_id로 넣어 아직 전환하지 않은 화면이 동작하게 합니다. */
+function withSessionUser(state: DemoState, user: Employee | null): DemoState {
+  if (!user) return state
+  const exists = state.employees.some((employee) => employee.employee_id === user.employee_id)
+  return {
+    ...state,
+    employees: exists
+      ? state.employees.map((employee) =>
+          employee.employee_id === user.employee_id ? { ...employee, ...user } : employee,
+        )
+      : [...state.employees, user],
+  }
+}
+
 /** React 상태와 저장소를 연결합니다. 업무 변경 규칙은 mutations.ts에 있습니다. */
 export function useDemoStore() {
-  const [db, setDb] = useState(loadDemoState)
+  const session = useSession()
+  const [saved, setSaved] = useState(loadDemoState)
+  const db = useMemo(() => withSessionUser(saved, session.user), [saved, session.user])
   const stateRef = useRef(db)
-  const [userId, setUserId] = useState<number | null>(loadSessionUserId)
-  const user = db.employees.find((e) => e.employee_id === userId) || null
+  useEffect(() => {
+    stateRef.current = db
+  }, [db])
+  const user = session.user
   function commit(next: DemoState) {
     persistDemoState(next)
     stateRef.current = next
-    setDb(next)
+    setSaved(next)
   }
   function requireCurrentUser() {
     if (!user || user.employment_status === 'RESIGNED') throw new Error('로그인이 필요해요.')
     return user
-  }
-  function switchUser(id: number | null) {
-    persistSessionUserId(id)
-    setUserId(id)
-  }
-  // 서버가 401을 주면 토큰은 api client가 지우고, 여기서는 로그인 화면으로 돌아갑니다.
-  useEffect(() => onUnauthorized(() => switchUser(null)), [])
-  async function login(loginId: string, password: string) {
-    const employee = stateRef.current.employees.find(
-      (e) => normalizeId(e.login_id) === normalizeId(loginId),
-    )
-    if (!employee || employee.employment_status === 'RESIGNED')
-      throw new Error('로그인 ID 또는 비밀번호를 확인해 주세요.')
-    const credential = stateRef.current.credentials[String(employee.employee_id)]
-    const valid = credential
-      ? (await makeCredential(password, credential.salt)).hash === credential.hash
-      : password === 'demo1234' && employee.employee_id <= 10
-    if (!valid) throw new Error('로그인 ID 또는 비밀번호를 확인해 주세요.')
-    switchUser(employee.employee_id)
-  }
-  function isIdAvailable(loginId: string) {
-    return (
-      !!normalizeId(loginId) &&
-      !stateRef.current.employees.some((e) => normalizeId(e.login_id) === normalizeId(loginId))
-    )
-  }
-  async function register(input: RegistrationInput, password: string) {
-    requirePassword(password)
-    validateRegistration(input)
-    const credential = await makeCredential(password)
-    const result = registerEmployeeInState(stateRef.current, input, credential)
-    commit(result.state)
-    switchUser(result.employee.employee_id)
-    return result.employee.employee_no
   }
   async function updateProfile(
     input: Pick<Employee, 'education' | 'total_career_months' | 'skill_description'>,
@@ -127,10 +99,6 @@ export function useDemoStore() {
   return {
     db,
     user,
-    switchUser,
-    login,
-    register,
-    isIdAvailable,
     updateProfile,
     saveProject,
     saveMember,
@@ -138,6 +106,6 @@ export function useDemoStore() {
     saveEvaluation,
     recordWorkflow,
     saveClient,
-    today: today(),
+    today: session.today,
   }
 }
