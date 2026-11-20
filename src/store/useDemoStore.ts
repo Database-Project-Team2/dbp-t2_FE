@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { onUnauthorized } from '../shared/api/client'
 import {
   loadDemoState,
   persistDemoState,
@@ -44,6 +45,8 @@ export function useDemoStore() {
     persistSessionUserId(id)
     setUserId(id)
   }
+  // 서버가 401을 주면 토큰은 api client가 지우고, 여기서는 로그인 화면으로 돌아갑니다.
+  useEffect(() => onUnauthorized(() => switchUser(null)), [])
   async function login(loginId: string, password: string) {
     const employee = stateRef.current.employees.find(
       (e) => normalizeId(e.login_id) === normalizeId(loginId),
