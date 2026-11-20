@@ -1,25 +1,27 @@
 import { useState } from 'react'
-import { isManagement, visibleClients, visibleProjects } from '@/shared/domain/permissions'
+import { isManagement } from '@/shared/domain/permissions'
+import { clientsApi } from '@/shared/api/resources'
+import { useApi } from '@/shared/api/useApi'
+import { LoadState } from '@/shared/ui/feedback/LoadState'
 import { Button } from '@/shared/ui/actions/Button'
 import { Card } from '@/shared/ui/layout/Card'
 import { Empty } from '@/shared/ui/feedback/Empty'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { PageHeader } from '@/shared/ui/layout/PageHeader'
 import { SearchField } from '@/shared/ui/forms/SearchField'
-import { useStore } from '@/store/StoreContext'
+import { useSession } from '@/app/session/SessionContext'
 import type { Client } from '@/shared/model/entities'
 import type { Notice } from '@/app/routing/navigation'
 import { ClientFormDialog } from '../components/ClientFormDialog'
 
 export function ClientsPage({ onNotice }: { onNotice: Notice }) {
-  const { db, user } = useStore()
+  const { user } = useSession()
   const manager = isManagement(user!)
-  const projects = visibleProjects(db, user!)
   const [query, setQuery] = useState('')
   const [form, setForm] = useState<Client | null>(null)
-  const clients = visibleClients(db, user!).filter((c) =>
-    `${c.client_name} ${c.contact_name}`.includes(query),
-  )
+  // 경영진 전체 / 직원 소속 프로젝트의 발주처. 프로젝트 수도 같은 범위로 셉니다.
+  const search = useApi(() => clientsApi.search({ query }), [query])
+  const clients = search.data?.data ?? []
 
   return (
     <>
@@ -78,7 +80,7 @@ export function ClientsPage({ onNotice }: { onNotice: Notice }) {
               </div>
               <p>{c.contact_phone_number || '전화번호 미등록'}</p>
               <div className="mt-6 flex items-center justify-between border-t border-line pt-4 text-[11px] text-muted">
-                <span>프로젝트 {projects.filter((p) => p.client_id === c.client_id).length}개</span>
+                <span>프로젝트 {c.project_count}개</span>
                 {manager && (
                   <Button
                     variant="text"
@@ -94,10 +96,18 @@ export function ClientsPage({ onNotice }: { onNotice: Notice }) {
             </article>
           ))}
         </div>
-        {!clients.length && <Empty />}
+        {!search.data && <LoadState error={search.error} />}
+        {search.data && !clients.length && <Empty />}
       </Card>
       {manager && form && (
-        <ClientFormDialog client={form} onClose={() => setForm(null)} onNotice={onNotice} />
+        <ClientFormDialog
+          client={form}
+          onClose={() => {
+            setForm(null)
+            search.reload()
+          }}
+          onNotice={onNotice}
+        />
       )}
     </>
   )

@@ -2,11 +2,11 @@ import { Card } from '@/shared/ui/layout/Card'
 import { cn } from '@/shared/lib/cn'
 import { go } from '@/app/routing/navigation'
 import { SectionHeading } from '@/shared/ui/layout/SectionHeading'
-import { useStore } from '@/store/StoreContext'
-import type { Project } from '@/shared/model/entities'
+import { useSession } from '@/app/session/SessionContext'
+import type { DashboardProject } from '@/shared/api/types'
 
-export function ProjectTimeline({ projects }: { projects: Project[] }) {
-  const { today } = useStore()
+export function ProjectTimeline({ projects }: { projects: DashboardProject[] }) {
+  const { today } = useSession()
   return (
     <Card as="section">
       <SectionHeading>
@@ -40,50 +40,41 @@ export function ProjectTimeline({ projects }: { projects: Project[] }) {
               ))}
             </div>
           </div>
-          {projects
-            .filter(
-              (p) =>
-                p.actual_start_date.slice(0, 4) <= today.slice(0, 4) &&
-                (!p.actual_end_date || p.actual_end_date.slice(0, 4) >= today.slice(0, 4)),
-            )
-            .map((p) => {
-              const year = today.slice(0, 4)
-              const from = Math.max(Date.parse(`${year}-01-01`), Date.parse(p.actual_start_date))
-              const to = Math.min(
-                Date.parse(`${year}-12-31`),
-                Date.parse(p.actual_end_date || today),
-              )
-              const days = Date.parse(`${year}-12-31`) - Date.parse(`${year}-01-01`) || 1
-              const left = ((from - Date.parse(`${year}-01-01`)) / days) * 100
-              const width = Math.max(1, ((to - from) / days) * 100)
-              return (
-                <div
-                  className={cn(
-                    'grid h-10 grid-cols-[190px_1fr] items-center',
-                    '[&>button]:truncate [&>button]:p-0 [&>button]:text-left',
-                    '[&>button]:text-[11px] [&>button]:text-secondary',
-                  )}
-                  key={p.project_id}
-                >
-                  <button onClick={() => go(`projects/${p.project_id}`)}>{p.project_name}</button>
-                  <div className="relative h-full bg-[repeating-linear-gradient(to_right,#e9eaee_0,#e9eaee_1px,transparent_1px,transparent_8.333%)]">
-                    <button
-                      className={cn(
-                        'absolute top-2 h-6 min-w-6 overflow-hidden rounded px-2 text-[10px] whitespace-nowrap',
-                        p.actual_end_date
-                          ? 'bg-canvas text-secondary'
-                          : 'bg-brand-soft text-brand-ink',
-                      )}
-                      style={{ left: `${left}%`, width: `${width}%` }}
-                      onClick={() => go(`projects/${p.project_id}`)}
-                      aria-label={`${p.project_name} 상세 보기`}
-                    >
-                      {p.actual_end_date ? '종료' : '진행 중'}
-                    </button>
-                  </div>
+          {projects.map((p) => {
+            const year = today.slice(0, 4)
+            const from = Math.max(Date.parse(`${year}-01-01`), Date.parse(p.actual_start_date))
+            const to = Math.min(Date.parse(`${year}-12-31`), Date.parse(p.actual_end_date || today))
+            const days = Date.parse(`${year}-12-31`) - Date.parse(`${year}-01-01`) || 1
+            const left = ((from - Date.parse(`${year}-01-01`)) / days) * 100
+            const width = Math.max(1, ((to - from) / days) * 100)
+            return (
+              <div
+                className={cn(
+                  'grid h-10 grid-cols-[190px_1fr] items-center',
+                  '[&>button]:truncate [&>button]:p-0 [&>button]:text-left',
+                  '[&>button]:text-[11px] [&>button]:text-secondary',
+                )}
+                key={p.project_id}
+              >
+                <button onClick={() => go(`projects/${p.project_id}`)}>{p.project_name}</button>
+                <div className="relative h-full bg-[repeating-linear-gradient(to_right,#e9eaee_0,#e9eaee_1px,transparent_1px,transparent_8.333%)]">
+                  <button
+                    className={cn(
+                      'absolute top-2 h-6 min-w-6 overflow-hidden rounded px-2 text-[10px] whitespace-nowrap',
+                      p.actual_end_date
+                        ? 'bg-canvas text-secondary'
+                        : 'bg-brand-soft text-brand-ink',
+                    )}
+                    style={{ left: `${left}%`, width: `${width}%` }}
+                    onClick={() => go(`projects/${p.project_id}`)}
+                    aria-label={`${p.project_name} 상세 보기`}
+                  >
+                    {p.actual_end_date ? '종료' : '진행 중'}
+                  </button>
                 </div>
-              )
-            })}
+              </div>
+            )
+          })}
         </div>
       </div>
     </Card>

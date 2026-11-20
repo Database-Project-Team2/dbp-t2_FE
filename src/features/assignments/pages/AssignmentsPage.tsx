@@ -6,35 +6,41 @@ import { DateInput } from '@/shared/ui/forms/DateInput'
 import { Field } from '@/shared/ui/forms/Field'
 import { FilterPanel } from '@/shared/ui/forms/FilterPanel'
 import { Icon } from '@/shared/ui/actions/Icon'
-import { isAssigned } from '@/shared/domain/assignments'
-import { overlapsPeriod, dateLabel } from '@/shared/lib/date'
+import { completeDate, dateLabel } from '@/shared/lib/date'
 import { PageHeader } from '@/shared/ui/layout/PageHeader'
 import { ROLES } from '@/shared/model/labels'
 import { SearchField } from '@/shared/ui/forms/SearchField'
 import { Select } from '@/shared/ui/forms/Select'
-import { useStore } from '@/store/StoreContext'
-import { visibleHistory, isManagement } from '@/shared/domain/permissions'
+import { useSession } from '@/app/session/SessionContext'
+import { isManagement } from '@/shared/domain/permissions'
+import { assignmentsApi, projectsApi } from '@/shared/api/resources'
+import { useApi } from '@/shared/api/useApi'
+import { LoadState } from '@/shared/ui/feedback/LoadState'
 import type { Notice } from '@/app/routing/navigation'
 import { AssignmentsTable } from '../components/AssignmentsTable'
 
 export function AssignmentsPage({ onNotice }: { onNotice: Notice }) {
-  const { db, user, today } = useStore()
+  const { user, today } = useSession()
   const [query, setQuery] = useState('')
   const [project, setProject] = useState('')
   const [role, setRole] = useState('')
   const [date, setDate] = useState('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
-  const scoped = visibleHistory(db, user!)
-  const projects = db.projects.filter((p) => scoped.some((m) => m.project_id === p.project_id))
-  const rows = scoped.filter(
-    (m) =>
-      db.employees.find((e) => e.employee_id === m.employee_id)!.employee_name.includes(query) &&
-      (!project || String(m.project_id) === project) &&
-      (!role || m.project_role === role) &&
-      (!date || isAssigned(m, date)) &&
-      (!(from || to) || overlapsPeriod(m.assignment_start_date, m.assignment_end_date, from, to)),
+  const projects = useApi(() => projectsApi.list(), []).data?.data ?? []
+  const search = useApi(
+    () =>
+      assignmentsApi.search({
+        employee_name: query,
+        project_id: project,
+        project_role: role,
+        as_of: completeDate(date),
+        from: completeDate(from),
+        to: completeDate(to),
+      }),
+    [query, project, role, completeDate(date), completeDate(from), completeDate(to)],
   )
+  const rows = search.data?.data ?? []
   return (
     <>
       <PageHeader
@@ -49,11 +55,11 @@ export function AssignmentsPage({ onNotice }: { onNotice: Notice }) {
                 csvContent(
                   ['직원', '사번', '프로젝트', '역할', '투입 시작일', '투입 종료일'],
                   rows.map((m) => {
-                    const e = db.employees.find((e) => e.employee_id === m.employee_id)!
+                    const e = m.employee
                     return [
                       e.employee_name,
                       e.employee_no,
-                      db.projects.find((p) => p.project_id === m.project_id)?.project_name,
+                      m.project.project_name,
                       ROLES[m.project_role],
                       m.assignment_start_date,
                       m.assignment_end_date,
@@ -152,7 +158,7 @@ export function AssignmentsPage({ onNotice }: { onNotice: Notice }) {
                 : '본인의 실제 투입 이력'}
           </span>
         </div>
-        <AssignmentsTable rows={rows} />
+        {search.data ? <AssignmentsTable rows={rows} /> : <LoadState error={search.error} />}
       </Card>
     </>
   )

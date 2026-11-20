@@ -5,12 +5,16 @@ import { Empty } from '@/shared/ui/feedback/Empty'
 import { go } from '@/app/routing/navigation'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { SectionHeading } from '@/shared/ui/layout/SectionHeading'
-import { useStore } from '@/store/StoreContext'
-import { workflowLabel, clientCoverage } from '@/shared/domain/evaluations'
-import type { Project } from '@/shared/model/entities'
+import { WORKFLOW } from '@/shared/model/labels'
+import type { CustomerEvaluationTask, DashboardProject } from '@/shared/api/types'
 
-export function PendingTasksCard({ pending, overdue }: { pending: Project[]; overdue: Project[] }) {
-  const { db } = useStore()
+export function PendingTasksCard({
+  pending,
+  overdue,
+}: {
+  pending: CustomerEvaluationTask[]
+  overdue: DashboardProject[]
+}) {
   return (
     <Card as="section" className="flex flex-col">
       <SectionHeading>
@@ -53,10 +57,10 @@ export function PendingTasksCard({ pending, overdue }: { pending: Project[]; ove
               <Icon name="check" />
             </span>
             <div>
-              <b>고객평가 {workflowLabel(p)}</b>
+              <b>고객평가 {WORKFLOW[p.workflow_status]}</b>
               <p>{p.project_name}</p>
               <small>
-                {clientCoverage(db, p).received}/{clientCoverage(db, p).total}명 등록
+                {p.received_count}/{p.participant_count}명 등록
               </small>
             </div>
             <Icon name="arrow" size={16} />

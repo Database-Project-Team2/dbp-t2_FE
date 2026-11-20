@@ -10,7 +10,8 @@ import { JOBS, ROLES } from '@/shared/model/labels'
 import { PersonInline } from '@/shared/ui/data/PersonInline'
 import { SectionHeading } from '@/shared/ui/layout/SectionHeading'
 import { Table } from '@/shared/ui/data/Table'
-import { useStore } from '@/store/StoreContext'
+import { useSession } from '@/app/session/SessionContext'
+import type { MemberView } from '@/shared/api/types'
 import type { Project, Member } from '@/shared/model/entities'
 
 export function ProjectMembersTable({
@@ -22,13 +23,13 @@ export function ProjectMembersTable({
   onRemove,
 }: {
   project: Project
-  team: Member[]
+  team: MemberView[]
   manageable: boolean
   onAdd: () => void
   onEdit: (member: Member) => void
   onRemove: (member: Member) => void
 }) {
-  const { db, user } = useStore()
+  const { user } = useSession()
   return (
     <Card as="section">
       <SectionHeading>
@@ -58,7 +59,7 @@ export function ProjectMembersTable({
           </thead>
           <tbody>
             {team.map((m) => {
-              const e = db.employees.find((e) => e.employee_id === m.employee_id)!
+              const e = m.employee
               return (
                 <tr key={m.member_id}>
                   <td>

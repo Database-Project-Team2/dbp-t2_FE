@@ -2,12 +2,13 @@ import { Badge } from '@/shared/ui/feedback/Badge'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { dateLabel } from '@/shared/lib/date'
 import { go } from '@/app/routing/navigation'
-import { useStore } from '@/store/StoreContext'
-import { upcomingPmProjects } from '../model/dashboardOverview'
+import type { EmployeeDashboard } from '@/shared/api/types'
 
-export function UpcomingPmProjects() {
-  const { db, user, today } = useStore()
-  const upcoming = upcomingPmProjects(db, user!, today)
+export function UpcomingPmProjects({
+  upcoming,
+}: {
+  upcoming: EmployeeDashboard['upcoming_pm_projects']
+}) {
   return (
     <section className="mb-6 rounded-[18px] border border-brand-line bg-white p-7">
       <div className="flex items-center gap-3">
@@ -24,13 +25,15 @@ export function UpcomingPmProjects() {
       </div>
       {upcoming.length ? (
         <div className="mt-5 grid grid-cols-2 gap-3">
-          {upcoming.map(({ project, days }) => (
+          {upcoming.map((project) => (
             <button
               key={project.project_id}
               onClick={() => go(`projects/${project.project_id}`)}
               className="flex items-center gap-4 rounded-xl bg-canvas p-4 text-left hover:bg-brand-soft"
             >
-              <Badge tone="accent">{days === 0 ? 'D-Day' : `D-${days}`}</Badge>
+              <Badge tone="accent">
+                {project.days_left === 0 ? 'D-Day' : `D-${project.days_left}`}
+              </Badge>
               <span className="min-w-0 flex-1">
                 <b className="block truncate text-sm">{project.project_name}</b>
                 <span className="mt-1.5 block text-xs text-secondary">

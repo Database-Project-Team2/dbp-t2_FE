@@ -1,54 +1,66 @@
 import { useState } from 'react'
+import { completeDate } from '@/shared/lib/date'
 import { Button } from '@/shared/ui/actions/Button'
 import { Card } from '@/shared/ui/layout/Card'
 import { Empty } from '@/shared/ui/feedback/Empty'
 import { DateInput } from '@/shared/ui/forms/DateInput'
 import { FilterPanel } from '@/shared/ui/forms/FilterPanel'
 import { Icon } from '@/shared/ui/actions/Icon'
-import { matchesProjectSearch, projectStatus } from '@/shared/domain/projects'
 import { PageHeader } from '@/shared/ui/layout/PageHeader'
 import { SearchField } from '@/shared/ui/forms/SearchField'
 import { TabButton } from '@/shared/ui/actions/TabButton'
-import { type Notice, go } from '@/app/routing/navigation'
+import type { Notice } from '@/app/routing/navigation'
 import { useStore } from '@/store/StoreContext'
-import { visibleProjects, isManagement } from '@/shared/domain/permissions'
+import { useSession } from '@/app/session/SessionContext'
+import { isManagement } from '@/shared/domain/permissions'
+import { projectsApi } from '@/shared/api/resources'
+import { useApi } from '@/shared/api/useApi'
+import { LoadState } from '@/shared/ui/feedback/LoadState'
+import type { ProjectStatus } from '@/shared/api/types'
 import type { Project } from '@/shared/model/entities'
-import { ProjectDetailPage } from './ProjectDetailPage'
+import { ProjectDetailLoader } from './ProjectDetailPage'
 import { ProjectFormDialog } from '../components/ProjectFormDialog'
 import { ProjectGrid } from '../components/ProjectGrid'
 
 export function ProjectsPage({ id, onNotice }: { id?: number; onNotice: Notice }) {
-  const { db, user, today } = useStore()
+  const { db } = useStore()
+  const { user, today } = useSession()
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState('전체')
   const [client, setClient] = useState('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [form, setForm] = useState<Project | null>(null)
-  const projects = visibleProjects(db, user!)
-  if (id) {
-    const p = projects.find((p) => p.project_id === id)
-    return p ? (
-      <ProjectDetailPage key={id} project={p} onNotice={onNotice} />
-    ) : (
-      <Empty
-        title="프로젝트를 볼 수 없어요"
-        message="참여하지 않은 프로젝트이거나 존재하지 않는 프로젝트예요."
-        action={
-          <Button variant="primary" onClick={() => go('projects')}>
-            목록으로
-          </Button>
-        }
-      />
-    )
+  const statusFilter: Record<string, ProjectStatus | undefined> = {
+    전체: undefined,
+    '진행 중': 'IN_PROGRESS',
+    종료: 'CLOSED',
   }
-  const filtered = projects.filter((p) =>
-    matchesProjectSearch(
-      p,
-      db.clients.find((c) => c.client_id === p.client_id)?.client_name || '',
-      { query, client, status, from, to },
-    ),
+  // 조회 범위(경영진 전체 / 직원 소속 프로젝트)와 검색은 서버가 처리합니다.
+  const list = useApi(
+    () =>
+      id
+        ? Promise.resolve(null)
+        : projectsApi.list({
+            project_name: query,
+            client_name: client,
+            status: statusFilter[status],
+            from: completeDate(from),
+            to: completeDate(to),
+          }),
+    [id, query, client, status, completeDate(from), completeDate(to)],
   )
+  if (id) {
+    return <ProjectDetailLoader key={id} id={id} onNotice={onNotice} />
+  }
+  const filtered = list.data?.data ?? []
+  const counts = list.data?.status_counts
+  const tabCount = (s: string) =>
+    !counts
+      ? 0
+      : s === '전체'
+        ? counts.NOT_STARTED + counts.IN_PROGRESS + counts.CLOSED
+        : counts[statusFilter[s]!]
   const newProject: Project = {
     project_id: 0,
     project_name: '',
@@ -83,11 +95,7 @@ export function ProjectsPage({ id, onNotice }: { id?: number; onNotice: Notice }
           {['전체', '진행 중', '종료'].map((s) => (
             <TabButton key={s} active={status === s} onClick={() => setStatus(s)}>
               {s}
-              <span>
-                {s === '전체'
-                  ? projects.length
-                  : projects.filter((p) => projectStatus(p) === s).length}
-              </span>
+              <span>{tabCount(s)}</span>
             </TabButton>
           ))}
         </div>
@@ -132,8 +140,8 @@ export function ProjectsPage({ id, onNotice }: { id?: number; onNotice: Notice }
           </span>
           <span>이름·발주처·기간을 함께 검색할 수 있어요</span>
         </div>
-        <ProjectGrid projects={filtered} />
-        {!filtered.length && (
+        {list.data ? <ProjectGrid projects={filtered} /> : <LoadState error={list.error} />}
+        {list.data && !filtered.length && (
           <Empty
             action={
               <Button
@@ -153,7 +161,14 @@ export function ProjectsPage({ id, onNotice }: { id?: number; onNotice: Notice }
         )}
       </Card>
       {form && (
-        <ProjectFormDialog project={form} onClose={() => setForm(null)} onNotice={onNotice} />
+        <ProjectFormDialog
+          project={form}
+          onClose={() => {
+            setForm(null)
+            list.reload()
+          }}
+          onNotice={onNotice}
+        />
       )}
     </>
   )

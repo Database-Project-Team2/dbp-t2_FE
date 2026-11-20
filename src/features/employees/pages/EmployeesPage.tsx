@@ -6,21 +6,20 @@ import { Field } from '@/shared/ui/forms/Field'
 import { FilterPanel } from '@/shared/ui/forms/FilterPanel'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { Input } from '@/shared/ui/forms/Input'
-import { matchesEmployeeSearch } from '@/shared/domain/employeeSearch'
-import { isAssigned } from '@/shared/domain/assignments'
 import { JOBS, EMPLOYMENT } from '@/shared/model/labels'
 import { Modal } from '@/shared/ui/overlays/Modal'
 import { PageHeader } from '@/shared/ui/layout/PageHeader'
 import { SearchField } from '@/shared/ui/forms/SearchField'
 import { Select } from '@/shared/ui/forms/Select'
-import { useStore } from '@/store/StoreContext'
+import { employeesApi } from '@/shared/api/resources'
+import { useApi } from '@/shared/api/useApi'
+import { LoadState } from '@/shared/ui/feedback/LoadState'
 import type { Employee } from '@/shared/model/entities'
 import type { Notice } from '@/app/routing/navigation'
 import { EmployeeDetailDialog } from '../components/EmployeeDetailDialog'
 import { EmployeesTable } from '../components/EmployeesTable'
 
 export function EmployeesPage({ onNotice }: { onNotice: Notice }) {
-  const { db, today } = useStore()
   const [query, setQuery] = useState('')
   const [job, setJob] = useState('')
   const [skill, setSkill] = useState('')
@@ -28,15 +27,26 @@ export function EmployeesPage({ onNotice }: { onNotice: Notice }) {
   const [assigned, setAssigned] = useState('')
   const [status, setStatus] = useState('')
   const [selected, setSelected] = useState<Employee | null>(null)
-  const employees = db.employees.filter(
-    (e) =>
-      matchesEmployeeSearch(e, query, skill, job) &&
-      (!career || e.total_career_months >= Number(career)) &&
-      (!status || e.employment_status === status) &&
-      (!assigned ||
-        db.members.some((m) => m.employee_id === e.employee_id && isAssigned(m, today)) ===
-          (assigned === 'yes')),
+  // 숫자만 입력하면 사번, 그 외에는 이름으로 검색합니다. 기술 키워드는 쉼표로 나눠 모두 포함(AND)합니다.
+  const term = query.trim()
+  const byNumber = /^\d+$/.test(term)
+  const search = useApi(
+    () =>
+      employeesApi.search({
+        employee_name: byNumber ? undefined : term,
+        employee_no: byNumber ? term : undefined,
+        job_category: job,
+        employment_status: status,
+        assigned: assigned ? assigned === 'yes' : undefined,
+        min_career_months: career,
+        skill: skill
+          .split(',')
+          .map((value) => value.trim())
+          .filter(Boolean),
+      }),
+    [term, job, status, assigned, career, skill],
   )
+  const employees = search.data?.data ?? []
   return (
     <>
       <PageHeader
@@ -129,7 +139,11 @@ export function EmployeesPage({ onNotice }: { onNotice: Notice }) {
           </span>
           <span>이름·사번 부분 검색</span>
         </div>
-        <EmployeesTable employees={employees} onSelect={setSelected} />
+        {search.data ? (
+          <EmployeesTable employees={employees} onSelect={setSelected} />
+        ) : (
+          <LoadState error={search.error} />
+        )}
       </Card>
       {selected && (
         <Modal wide title="직원 상세" onClose={() => setSelected(null)}>
