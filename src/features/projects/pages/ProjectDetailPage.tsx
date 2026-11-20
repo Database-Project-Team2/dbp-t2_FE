@@ -1,14 +1,19 @@
 import { useState } from 'react'
 import { Badge } from '@/shared/ui/feedback/Badge'
 import { Button } from '@/shared/ui/actions/Button'
-import { canManageProject, isPM } from '@/shared/domain/permissions'
 import { cn } from '@/shared/lib/cn'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { PageHeader } from '@/shared/ui/layout/PageHeader'
-import { projectStatus } from '@/shared/domain/projects'
+import { PROJECT_STATUS } from '@/shared/model/labels'
+import { Empty } from '@/shared/ui/feedback/Empty'
+import { LoadState } from '@/shared/ui/feedback/LoadState'
+import { ApiError } from '@/shared/api/client'
+import { projectsApi } from '@/shared/api/resources'
+import { useApi } from '@/shared/api/useApi'
+import type { MemberView, ProjectDetail } from '@/shared/api/types'
 import { type Notice, go } from '@/app/routing/navigation'
-import { useStore } from '@/store/StoreContext'
-import type { Project, Member } from '@/shared/model/entities'
+import { useSession } from '@/app/session/SessionContext'
+import type { Member } from '@/shared/model/entities'
 import { CustomerEvaluationCard } from '../components/CustomerEvaluationCard'
 import { RemoveMemberDialog } from '../components/RemoveMemberDialog'
 import { MemberFormDialog } from '../components/MemberFormDialog'
@@ -18,23 +23,55 @@ import { ProjectFormDialog } from '../components/ProjectFormDialog'
 import { ProjectMembersTable } from '../components/ProjectMembersTable'
 import { ProjectSummary } from '../components/ProjectSummary'
 
+/** 상세와 구성원을 서버에서 읽습니다. 조회 범위 밖(404)이면 안내를 보여 줍니다. */
+export function ProjectDetailLoader({ id, onNotice }: { id: number; onNotice: Notice }) {
+  const detail = useApi(() => Promise.all([projectsApi.detail(id), projectsApi.members(id)]), [id])
+  if (detail.error instanceof ApiError && detail.error.status === 404) {
+    return (
+      <Empty
+        title="프로젝트를 볼 수 없어요"
+        message="참여하지 않은 프로젝트이거나 존재하지 않는 프로젝트예요."
+        action={
+          <Button variant="primary" onClick={() => go('projects')}>
+            목록으로
+          </Button>
+        }
+      />
+    )
+  }
+  if (!detail.data) return <LoadState error={detail.error} />
+  const [project, members] = detail.data
+  return (
+    <ProjectDetailPage
+      project={project}
+      team={members}
+      onChanged={detail.reload}
+      onNotice={onNotice}
+    />
+  )
+}
+
 export function ProjectDetailPage({
   project: p,
+  team,
+  onChanged,
   onNotice,
 }: {
-  project: Project
+  project: ProjectDetail
+  team: MemberView[]
+  onChanged: () => void
   onNotice: Notice
 }) {
-  const { db, user, today } = useStore()
+  const { today } = useSession()
   const [edit, setEdit] = useState(false)
-  const [member, setMember] = useState<Member | null>(null)
-  const [removing, setRemoving] = useState<Member | null>(null)
+  const [member, setMember] = useState<Member | MemberView | null>(null)
+  const [removing, setRemoving] = useState<MemberView | null>(null)
   const [workflow, setWorkflow] = useState(false)
   const [close, setClose] = useState(false)
-  const team = db.members.filter((m) => m.project_id === p.project_id)
-  const client = db.clients.find((c) => c.client_id === p.client_id)!
-  const manageable = canManageProject(user!)
-  const pm = isPM(db, user!, p.project_id)
+  const client = p.client
+  // 버튼 표시용 권한. 실제 권한은 각 API가 다시 검사합니다.
+  const manageable = p.permissions.can_manage
+  const pm = p.permissions.can_record_customer_evaluation
   const newMember: Member = {
     member_id: 0,
     project_id: p.project_id,
@@ -58,7 +95,7 @@ export function ProjectDetailPage({
         description={client.client_name}
         actions={
           <>
-            <Badge tone={p.actual_end_date ? 'gray' : 'accent'}>{projectStatus(p)}</Badge>
+            <Badge tone={p.actual_end_date ? 'gray' : 'accent'}>{PROJECT_STATUS[p.status]}</Badge>
             {manageable && !p.actual_end_date && (
               <>
                 <Button variant="secondary" onClick={() => setEdit(true)}>
@@ -124,14 +161,33 @@ export function ProjectDetailPage({
           </Button>
         </div>
       )}
-      {edit && <ProjectFormDialog project={p} onClose={() => setEdit(false)} onNotice={onNotice} />}
+      {edit && (
+        <ProjectFormDialog
+          project={p}
+          onClose={() => {
+            setEdit(false)
+            onChanged()
+          }}
+          onNotice={onNotice}
+        />
+      )}
       {member && (
-        <MemberFormDialog member={member} onClose={() => setMember(null)} onNotice={onNotice} />
+        <MemberFormDialog
+          member={member}
+          onClose={() => {
+            setMember(null)
+            onChanged()
+          }}
+          onNotice={onNotice}
+        />
       )}
       {removing && (
         <RemoveMemberDialog
           member={removing}
-          onClose={() => setRemoving(null)}
+          onClose={() => {
+            setRemoving(null)
+            onChanged()
+          }}
           onNotice={onNotice}
         />
       )}
@@ -142,6 +198,7 @@ export function ProjectDetailPage({
           onClose={() => {
             setWorkflow(false)
             setClose(false)
+            onChanged()
           }}
           onNotice={onNotice}
         />

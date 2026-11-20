@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 import { Avatar } from '@/shared/ui/data/Avatar'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { isManagement } from '@/shared/domain/permissions'
-import { useStore } from '@/store/StoreContext'
+import { useSession } from '../session/SessionContext'
 import { go } from '../routing/navigation'
 
 const itemClass = cn(
@@ -12,7 +12,7 @@ const itemClass = cn(
   'aria-[current=page]:bg-brand-soft aria-[current=page]:text-brand-ink',
 )
 export function AccountMenu({ route }: { route: string }) {
-  const { user, switchUser } = useStore()
+  const { user, logout } = useSession()
   const ref = useRef<HTMLDetailsElement>(null)
   const employee = user!
   const role = isManagement(employee) ? '경영진' : '일반 직원'
@@ -77,8 +77,7 @@ export function AccountMenu({ route }: { route: string }) {
             className={itemClass}
             onClick={() => {
               closeMenu()
-              switchUser(null)
-              go('dashboard')
+              void logout().then(() => go('dashboard'))
             }}
           >
             <Icon name="logout" size={17} />

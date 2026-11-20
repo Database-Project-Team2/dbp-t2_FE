@@ -3,16 +3,19 @@ import { cn } from '@/shared/lib/cn'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { Modal } from '@/shared/ui/overlays/Modal'
 import { SearchField } from '@/shared/ui/forms/SearchField'
-import { useStore } from '@/store/StoreContext'
-import { visibleProjects } from '@/shared/domain/permissions'
+import { projectsApi } from '@/shared/api/resources'
+import { useApi } from '@/shared/api/useApi'
 import { go } from '../routing/navigation'
 
 export function QuickSearchDialog({ onClose }: { onClose: () => void }) {
-  const { db, user } = useStore()
   const [query, setQuery] = useState('')
-  const projects = visibleProjects(db, user!).filter(
-    (project) => query && project.project_name.toLowerCase().includes(query.toLowerCase()),
+  // 서버가 조회 범위(경영진 전체 / 직원 소속 프로젝트)를 적용합니다.
+  const { data } = useApi(
+    () =>
+      query.trim() ? projectsApi.list({ project_name: query, size: 20 }) : Promise.resolve(null),
+    [query],
   )
+  const projects = (query.trim() && data?.data) || []
 
   return (
     <Modal title="프로젝트 빠른 검색" onClose={onClose}>

@@ -8,7 +8,9 @@ import { EmployeePicker } from '@/features/employees/components/EmployeePicker'
 import { ROLES } from '@/shared/model/labels'
 import { Modal } from '@/shared/ui/overlays/Modal'
 import { Select } from '@/shared/ui/forms/Select'
-import { useStore } from '@/store/StoreContext'
+import { useSession } from '@/app/session/SessionContext'
+import { membersApi, projectsApi } from '@/shared/api/resources'
+import type { EmployeeSummary } from '@/shared/api/types'
 import type { Member, ProjectRole } from '@/shared/model/entities'
 import type { Notice } from '@/app/routing/navigation'
 
@@ -17,23 +19,39 @@ export function MemberFormDialog({
   onClose,
   onNotice,
 }: {
-  member: Member
+  member: Member & { employee?: EmployeeSummary }
   onClose: () => void
   onNotice: Notice
 }) {
-  const { db, today, saveMember } = useStore()
+  const { today } = useSession()
   const [form, setForm] = useState(member)
   const [error, setError] = useState('')
-  const employee = db.employees.find((item) => item.employee_id === member.employee_id)
+  const [busy, setBusy] = useState(false)
+  const employee = member.employee
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (busy) return
+    setBusy(true)
     try {
-      saveMember(form)
+      if (member.member_id)
+        await membersApi.changeAssignment(member.member_id, {
+          assignment_start_date: form.assignment_start_date,
+          assignment_end_date: form.assignment_end_date,
+        })
+      else
+        await projectsApi.addMember(member.project_id, {
+          employee_id: form.employee_id,
+          project_role: form.project_role,
+          assignment_start_date: form.assignment_start_date,
+          assignment_end_date: form.assignment_end_date,
+        })
       onClose()
       onNotice('구성원의 투입 정보를 저장했어요.')
     } catch (err) {
       setError((err as Error).message)
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -102,7 +120,7 @@ export function MemberFormDialog({
           <Button variant="secondary" type="button" onClick={onClose}>
             취소
           </Button>
-          <Button variant="primary" type="submit" disabled={!form.employee_id}>
+          <Button variant="primary" type="submit" disabled={busy || !form.employee_id}>
             저장하기
           </Button>
         </FormActions>

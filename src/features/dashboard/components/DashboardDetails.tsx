@@ -1,7 +1,7 @@
 import { cn } from '@/shared/lib/cn'
 import { Icon } from '@/shared/ui/actions/Icon'
 
-import type { Project, Member } from '@/shared/model/entities'
+import type { AssignmentView, DashboardProject } from '@/shared/api/types'
 import { AssignmentSnapshot } from './AssignmentSnapshot'
 import { ProjectTimeline } from './ProjectTimeline'
 
@@ -10,9 +10,9 @@ export function DashboardDetails({
   date,
   members,
 }: {
-  projects: Project[]
+  projects: DashboardProject[]
   date: string
-  members: Member[]
+  members: AssignmentView[]
 }) {
   return (
     <details

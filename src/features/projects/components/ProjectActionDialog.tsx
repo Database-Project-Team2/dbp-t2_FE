@@ -5,7 +5,8 @@ import { DateInput } from '@/shared/ui/forms/DateInput'
 import { Field } from '@/shared/ui/forms/Field'
 import { FormActions } from '@/shared/ui/forms/FormActions'
 import { Modal } from '@/shared/ui/overlays/Modal'
-import { useStore } from '@/store/StoreContext'
+import { useSession } from '@/app/session/SessionContext'
+import { projectsApi } from '@/shared/api/resources'
 import type { Notice } from '@/app/routing/navigation'
 import type { Project } from '@/shared/model/entities'
 
@@ -20,14 +21,27 @@ export function ProjectActionDialog({
   onClose: () => void
   onNotice: Notice
 }) {
-  const { today, saveProject, recordWorkflow } = useStore()
+  const { today } = useSession()
   const [date, setDate] = useState(today)
   const [error, setError] = useState('')
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const [busy, setBusy] = useState(false)
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (busy) return
+    setBusy(true)
     try {
-      if (close) saveProject({ ...p, actual_end_date: date })
-      else recordWorkflow(p.project_id, date)
+      // 종료는 서버가 한 트랜잭션에서 투입 중 구성원의 종료일까지 기록합니다.
+      if (close) await projectsApi.close(p.project_id, date)
+      else
+        await projectsApi.recordWorkflow(
+          p.project_id,
+          !p.evaluation_requested_date
+            ? 'REQUEST'
+            : !p.evaluation_received_date
+              ? 'RECEIVE'
+              : 'REPORT',
+          date,
+        )
       onClose()
       onNotice(
         close
@@ -36,6 +50,8 @@ export function ProjectActionDialog({
       )
     } catch (err) {
       setError((err as Error).message)
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -64,7 +80,7 @@ export function ProjectActionDialog({
           <Button variant="secondary" type="button" onClick={onClose}>
             취소
           </Button>
-          <Button variant="primary" type="submit">
+          <Button variant="primary" type="submit" disabled={busy}>
             {close ? '종료 확정' : '기록하기'}
           </Button>
         </FormActions>

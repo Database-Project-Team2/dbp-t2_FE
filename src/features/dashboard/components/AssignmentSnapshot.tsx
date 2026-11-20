@@ -6,29 +6,26 @@ import { dateLabel } from '@/shared/lib/date'
 import { Empty } from '@/shared/ui/feedback/Empty'
 import { go } from '@/app/routing/navigation'
 import { Icon } from '@/shared/ui/actions/Icon'
-import { isManagement } from '@/shared/domain/permissions'
 import { PersonInline } from '@/shared/ui/data/PersonInline'
 import { ROLES } from '@/shared/model/labels'
 import { SectionHeading } from '@/shared/ui/layout/SectionHeading'
 import { Table } from '@/shared/ui/data/Table'
-import { useStore } from '@/store/StoreContext'
-import type { Member } from '@/shared/model/entities'
+import type { AssignmentView } from '@/shared/api/types'
 
-export function AssignmentSnapshot({ members, date }: { members: Member[]; date: string }) {
-  const { db, user } = useStore()
-  const manager = isManagement(user!)
+/** 경영진 대시보드의 기준일 투입 현황입니다. */
+export function AssignmentSnapshot({ members, date }: { members: AssignmentView[]; date: string }) {
   return (
     <Card as="section">
       <SectionHeading>
         <div>
-          <h2>{manager ? '현재 투입 현황' : '내 투입 현황'}</h2>
+          <h2>현재 투입 현황</h2>
           <p>{dateLabel(date)} 기준, 수행 역할과 투입기간</p>
         </div>
         <a
           className="inline-flex items-center gap-1 text-xs whitespace-nowrap text-muted hover:text-brand-ink"
-          href={manager ? '#/history' : '#/profile'}
+          href="#/history"
         >
-          {manager ? '이력 조회' : '내 경력 보기'} <Icon name="arrow" size={14} />
+          이력 조회 <Icon name="arrow" size={14} />
         </a>
       </SectionHeading>
       <div className="overflow-auto">
@@ -44,7 +41,7 @@ export function AssignmentSnapshot({ members, date }: { members: Member[]; date:
           </thead>
           <tbody>
             {members.map((m) => {
-              const e = db.employees.find((e) => e.employee_id === m.employee_id)!
+              const e = m.employee
               return (
                 <tr key={m.member_id}>
                   <td>
@@ -59,7 +56,7 @@ export function AssignmentSnapshot({ members, date }: { members: Member[]; date:
                       size="plain"
                       onClick={() => go(`projects/${m.project_id}`)}
                     >
-                      {db.projects.find((p) => p.project_id === m.project_id)!.project_name}
+                      {m.project.project_name}
                     </Button>
                   </td>
                   <td>

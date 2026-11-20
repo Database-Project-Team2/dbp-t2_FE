@@ -5,20 +5,18 @@ import { careerLabel } from '@/shared/lib/format'
 import { cn } from '@/shared/lib/cn'
 import { Empty } from '@/shared/ui/feedback/Empty'
 import { Icon } from '@/shared/ui/actions/Icon'
-import { isAssigned } from '@/shared/domain/assignments'
 import { JOBS, EMPLOYMENT } from '@/shared/model/labels'
 import { Table } from '@/shared/ui/data/Table'
-import { useStore } from '@/store/StoreContext'
+import type { EmployeeListItem } from '@/shared/api/types'
 import type { Employee } from '@/shared/model/entities'
 
 export function EmployeesTable({
   employees,
   onSelect,
 }: {
-  employees: Employee[]
+  employees: EmployeeListItem[]
   onSelect: (employee: Employee) => void
 }) {
-  const { db, today } = useStore()
   return (
     <div className="overflow-auto">
       <Table>
@@ -34,9 +32,7 @@ export function EmployeesTable({
         </thead>
         <tbody>
           {employees.map((e) => {
-            const count = db.members.filter(
-              (m) => m.employee_id === e.employee_id && isAssigned(m, today),
-            ).length
+            const count = e.current_assignment_count
             return (
               <tr key={e.employee_id}>
                 <td>

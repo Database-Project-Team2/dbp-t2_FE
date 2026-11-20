@@ -40,13 +40,19 @@ npm run preview
 
 ## 현재 구현 범위
 
-현재는 백엔드 API가 연결되지 않은 프론트엔드입니다. 업무 데이터와 신규 계정은 localStorage, 로그인 상태는 sessionStorage에 저장합니다. 회원가입한 계정은 같은 브라우저에서 다시 로그인할 수 있습니다.
+모든 화면이 백엔드 API(dbp-t2_BE)에 연결되어 있습니다. 조회 범위·권한·업무 규칙 검사는 서버가 하고, 화면은 서버 응답과 오류 메시지를 그대로 보여 줍니다. 로그인 토큰(JWT, 12시간)은 sessionStorage에 두며, 로그아웃·비밀번호 변경·401 응답 시 토큰을 지우고 로그인 화면으로 돌아갑니다.
 
-주민번호 원문은 폼 검증에만 사용하고 저장소에는 앞 6자리와 마스킹 값만 남깁니다. 실제 본인인증·주민번호 암호화·DB 저장은 백엔드에서 구현해야 합니다. 비밀번호는 Web Crypto PBKDF2(무작위 salt, SHA-256, 100,000회)로 변환해 저장하며, API 연결 시에는 합의된 JWT 인증으로 교체합니다. 개발 환경은 localhost 또는 HTTPS에서 실행하세요.
+```bash
+cp .env.example .env.local   # VITE_API_BASE_URL=백엔드 주소(끝의 /api/v1 없이)
+npm run dev
+npm run e2e                  # Playwright: 로컬 Spring(8080)·Vite(5173)를 띄워 장면 1~5 실행(DB를 시드로 초기화)
+```
 
-개발 시 기존 SQL 관계를 확인할 계정은 demo01(경영진), demo05(프로젝트 2·4 PM), demo02(일반 직원)이며 초기 비밀번호는 demo1234입니다. 화면에 체험 로그인이나 계정 전환 기능은 제공하지 않습니다. 경영진 지정은 `src/data/seed.json`의 개발자 준비 계정으로 관리합니다. 기존 저장 데이터를 읽을 때 자체 선택했던 경영진/PM 권한은 일반 직원으로 정리하며 계정·비밀번호·프로젝트 기록은 유지합니다.
+시드 계정: demo01(경영진), demo05(프로젝트 2·4 PM), demo02·demo03(일반 직원), 비밀번호 demo1234. 회원가입자는 모두 일반 직원이며 사번은 서버가 발급합니다. 주민번호는 서버가 암호화해 저장하고 `YYMMDD-*******`로만 응답합니다.
 
-파일이나 원본 DB를 변경하지 않으며, 이메일 발송·인센티브 자동 계산·실제 DB 연동은 없습니다. 여러 탭에서 동시에 수정하거나 여러 사용자 간 데이터를 공유하는 기능은 제공하지 않습니다.
+`src/store/`와 일부 `shared/domain` 함수는 이전 목업 구현으로, 앱에서는 쓰지 않고 `tests/`의 업무 규칙 테스트에서만 사용합니다.
+
+이메일 발송·인센티브 자동 계산은 없습니다.
 
 ## 코드 구조
 
@@ -87,7 +93,9 @@ src/
     model/              # DB 타입·표시용 코드명
     domain/             # 권한·투입·평가 업무 규칙
     lib/                # 날짜·CSV·Tailwind 클래스 병합
-  store/                # 데모 상태·변경 처리·브라우저 저장
+  app/session/          # 로그인 상태(토큰·/auth/me·server_today)
+  shared/api/           # API 클라이언트·응답 타입·리소스 함수·useApi
+  store/                # 이전 목업 구현(테스트 전용)
   styles/
     index.css           # Tailwind 진입점
     theme.css           # 브랜드 색·글꼴·그림자
@@ -98,7 +106,7 @@ src/
 
 `main.tsx → app/App.tsx → app/layout/Workspace.tsx → app/routing/AppRoutes.tsx` 순서로 시작하세요. 이후 해당 업무의 `pages`에서 화면 구성을 보고, 같은 업무의 `components`에서 필요한 카드·표·폼을 찾으면 됩니다. 여러 단계의 `../../../` 대신 `@/shared/...`처럼 `src` 기준 경로를 사용합니다.
 
-데이터 변경은 `화면 → useStore() → store/useDemoStore.ts → store/mutations.ts → shared/domain/검증 → browserStorage.ts`를 따릅니다. 회원가입의 저장·중복 확인은 store/registration.ts에서 담당합니다. 업무 규칙은 UI와 분리되어 있고 기존 브라우저 저장 키와 데이터 형식도 유지합니다.
+데이터는 `화면 → shared/api/resources.ts → shared/api/client.ts(fetch, Bearer 토큰, {data} 해제, 오류 변환) → 백엔드`를 따릅니다. 조회는 `useApi(() => 리소스 함수, [조건])`로 읽고, 저장 후에는 `reload()`로 다시 읽습니다. 로그인 상태는 `app/session/SessionProvider`가 관리합니다(`useSession()`).
 
 ## Tailwind 스타일 작성
 

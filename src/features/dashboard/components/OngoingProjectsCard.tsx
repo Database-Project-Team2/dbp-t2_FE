@@ -5,23 +5,30 @@ import { dateLabel } from '@/shared/lib/date'
 import { Empty } from '@/shared/ui/feedback/Empty'
 import { go } from '@/app/routing/navigation'
 import { Icon } from '@/shared/ui/actions/Icon'
-import { isAssigned } from '@/shared/domain/assignments'
 import { SectionHeading } from '@/shared/ui/layout/SectionHeading'
-import { useStore } from '@/store/StoreContext'
-import type { Project } from '@/shared/model/entities'
+import type { ProjectRole } from '@/shared/model/entities'
+
+interface OngoingProject {
+  project_id: number
+  project_name: string
+  client_name: string
+  actual_start_date: string
+  planned_end_date: string
+  current_member_count: number
+  overdue: boolean
+  my_role?: ProjectRole
+  my_assignment_start_date?: string | null
+}
 
 export function OngoingProjectsCard({
   projects: ongoing,
-  date,
   historical,
   personal = false,
 }: {
-  projects: Project[]
-  date: string
+  projects: OngoingProject[]
   historical: boolean
   personal?: boolean
 }) {
-  const { db, user } = useStore()
   return (
     <Card as="section">
       <SectionHeading>
@@ -44,14 +51,6 @@ export function OngoingProjectsCard({
       </SectionHeading>
       {ongoing.length ? (
         ongoing.map((p) => {
-          const team = db.members.filter(
-            (m) => m.project_id === p.project_id && isAssigned(m, date),
-          )
-          const own = db.members.find(
-            (member) =>
-              member.project_id === p.project_id && member.employee_id === user!.employee_id,
-          )
-          const client = db.clients.find((c) => c.client_id === p.client_id)!
           return (
             <button
               className="block w-full border-t border-line px-7 py-6 text-left transition-colors hover:bg-subtle"
@@ -68,20 +67,20 @@ export function OngoingProjectsCard({
                   <Icon name="folder" size={24} />
                 </span>
                 <div>
-                  <small>{client.client_name}</small>
+                  <small>{p.client_name}</small>
                   <h3>{p.project_name}</h3>
-                  {personal && own && (
+                  {personal && p.my_role && (
                     <p className="mt-2 text-xs text-secondary">
-                      내 역할 · {ROLES[own.project_role]}
-                      {!own.assignment_start_date && ' · 투입 전'}
+                      내 역할 · {ROLES[p.my_role]}
+                      {!p.my_assignment_start_date && ' · 투입 전'}
                     </p>
                   )}
                 </div>
                 <Icon name="arrow" size={19} />
               </div>
               <div className="mt-5 flex items-center gap-2.5 [&>span:last-child]:text-[11px] [&>span:last-child]:text-muted">
-                <Badge tone={p.planned_end_date < date ? 'orange' : 'accent'}>
-                  {p.planned_end_date < date ? '예정일 경과' : '진행 중'}
+                <Badge tone={p.overdue ? 'orange' : 'accent'}>
+                  {p.overdue ? '예정일 경과' : '진행 중'}
                 </Badge>
                 <span>
                   {dateLabel(p.actual_start_date)} — {dateLabel(p.planned_end_date)}
@@ -89,7 +88,7 @@ export function OngoingProjectsCard({
               </div>
               <div className="mt-5 flex items-center gap-2 text-[11px] text-muted">
                 <Icon name="people" size={16} />
-                <span>{team.length}명 투입 중</span>
+                <span>{p.current_member_count}명 투입 중</span>
                 <span className="ml-auto flex items-center gap-1">
                   상세 보기 <Icon name="arrow" size={14} />
                 </span>

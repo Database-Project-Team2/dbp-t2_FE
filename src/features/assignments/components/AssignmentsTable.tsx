@@ -7,11 +7,9 @@ import { go } from '@/app/routing/navigation'
 import { PersonInline } from '@/shared/ui/data/PersonInline'
 import { ROLES } from '@/shared/model/labels'
 import { Table } from '@/shared/ui/data/Table'
-import { useStore } from '@/store/StoreContext'
-import type { Member } from '@/shared/model/entities'
+import type { AssignmentView } from '@/shared/api/types'
 
-export function AssignmentsTable({ rows }: { rows: Member[] }) {
-  const { db } = useStore()
+export function AssignmentsTable({ rows }: { rows: AssignmentView[] }) {
   return (
     <div className="overflow-auto">
       <Table>
@@ -27,7 +25,7 @@ export function AssignmentsTable({ rows }: { rows: Member[] }) {
         </thead>
         <tbody>
           {rows.map((m) => {
-            const e = db.employees.find((e) => e.employee_id === m.employee_id)!
+            const e = m.employee
             return (
               <tr key={m.member_id}>
                 <td>
@@ -45,7 +43,7 @@ export function AssignmentsTable({ rows }: { rows: Member[] }) {
                     size="plain"
                     onClick={() => go(`projects/${m.project_id}`)}
                   >
-                    {db.projects.find((p) => p.project_id === m.project_id)?.project_name}
+                    {m.project.project_name}
                   </Button>
                 </td>
                 <td>

@@ -9,7 +9,7 @@ import { Icon } from '@/shared/ui/actions/Icon'
 import { canAccessPage } from '@/shared/domain/permissions'
 import { ProfilePage } from '@/features/employees/pages/ProfilePage'
 import { ProjectsPage } from '@/features/projects/pages/ProjectsPage'
-import { useStore } from '@/store/StoreContext'
+import { useSession } from '../session/SessionContext'
 import { go, type Notice } from './navigation'
 
 interface AppRoutesProps {
@@ -19,7 +19,7 @@ interface AppRoutesProps {
 
 /** 주소와 권한에 따라 표시할 페이지를 선택합니다. */
 export function AppRoutes({ route, onNotice }: AppRoutesProps) {
-  const { user } = useStore()
+  const { user } = useSession()
   const [page, id] = route.split('/')
 
   if (!canAccessPage(user!, page)) {

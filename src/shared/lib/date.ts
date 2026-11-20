@@ -24,3 +24,7 @@ export function validateDate(value: string, label: string, max = today()) {
   )
   assert(value <= max, `${label}은 ${dateLabel(max)} 이후일 수 없어요.`)
 }
+
+/** 입력 중인 날짜는 서버로 보내지 않습니다. 완성된 YYYY-MM-DD만 돌려줍니다. */
+export const completeDate = (value: string) =>
+  /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)) ? value : undefined

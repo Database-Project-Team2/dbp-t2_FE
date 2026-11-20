@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { AuthPage } from '@/features/auth/pages/AuthPage'
 import { cn } from '@/shared/lib/cn'
 import { Icon } from '@/shared/ui/actions/Icon'
-import { useStore } from '@/store/StoreContext'
+import { useSession } from '../session/SessionContext'
 import { AppRoutes } from '../routing/AppRoutes'
 import { Header } from './Header'
 import { QuickSearchDialog } from '../components/QuickSearchDialog'
@@ -10,7 +10,7 @@ import { useHashRoute } from '../routing/useHashRoute'
 
 /** 공통 레이아웃만 담당합니다. 개별 화면 선택은 AppRoutes에서 확인하세요. */
 export function Workspace() {
-  const { user } = useStore()
+  const { user, ready } = useSession()
   const route = useHashRoute()
   const [notice, setNotice] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
@@ -21,6 +21,15 @@ export function Workspace() {
     return () => clearTimeout(timer)
   }, [notice])
 
+  if (!ready)
+    return (
+      <div
+        className="flex min-h-screen items-center justify-center text-sm text-muted"
+        role="status"
+      >
+        로그인 정보를 확인하고 있어요…
+      </div>
+    )
   if (!user) return <AuthPage onNotice={setNotice} />
 
   return (

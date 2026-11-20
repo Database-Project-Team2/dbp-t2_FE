@@ -1,27 +1,29 @@
 import { useState } from 'react'
 import { DateInput } from '@/shared/ui/forms/DateInput'
 import { Button } from '@/shared/ui/actions/Button'
-import { dateLabel } from '@/shared/lib/date'
+import { completeDate, dateLabel } from '@/shared/lib/date'
 import { isManagement } from '@/shared/domain/permissions'
 import { PageHeader } from '@/shared/ui/layout/PageHeader'
-import { projectStatus, ongoingProjectMembers } from '@/shared/domain/projects'
-import { useStore } from '@/store/StoreContext'
+import { LoadState } from '@/shared/ui/feedback/LoadState'
+import { useSession } from '@/app/session/SessionContext'
+import { dashboardApi } from '@/shared/api/resources'
+import { useApi } from '@/shared/api/useApi'
 import { DashboardDetails } from '../components/DashboardDetails'
 import { ManagementOverview } from '../components/ManagementOverview'
 import { EmployeeOverview } from '../components/EmployeeOverview'
 import { OngoingProjectsCard } from '../components/OngoingProjectsCard'
 import { PendingTasksCard } from '../components/PendingTasksCard'
 import { PersonalTasksCard } from '../components/PersonalTasksCard'
-import { personalProjects } from '../model/dashboardOverview'
 
 export function DashboardPage() {
-  const { db, user, today } = useStore()
+  const { user, today } = useSession()
   const manager = isManagement(user!)
   const [date, setDate] = useState(today)
   const historical = manager && date !== today
-  const ongoing = manager
-    ? db.projects.filter((project) => projectStatus(project, date) === '진행 중')
-    : personalProjects(db, user!, today)
+  const { data, error } = useApi(
+    () => dashboardApi.get(manager ? date : undefined),
+    [manager, date],
+  )
   return (
     <>
       <PageHeader
@@ -34,7 +36,7 @@ export function DashboardPage() {
               value={date}
               max={today}
               required
-              onValueChange={(value) => value && setDate(value)}
+              onValueChange={(value) => completeDate(value) && setDate(value)}
             />
           )
         }
@@ -47,31 +49,35 @@ export function DashboardPage() {
           </Button>
         </p>
       )}
-      {manager ? <ManagementOverview date={date} /> : <EmployeeOverview />}
-      <div className="grid grid-cols-[1.15fr_1fr] items-start gap-6 [&>section]:mb-0">
-        <OngoingProjectsCard
-          projects={ongoing}
-          date={manager ? date : today}
-          historical={historical}
-          personal={!manager}
-        />
-        {manager ? (
-          <PendingTasksCard
-            pending={db.projects.filter(
-              (project) => project.actual_end_date && !project.evaluation_reported_date,
-            )}
-            overdue={ongoing.filter((project) => project.planned_end_date < date)}
+      {!data ? (
+        <LoadState error={error} />
+      ) : data.view === 'MANAGEMENT' ? (
+        <>
+          <ManagementOverview dashboard={data} historical={historical} />
+          <div className="grid grid-cols-[1.15fr_1fr] items-start gap-6 [&>section]:mb-0">
+            <OngoingProjectsCard projects={data.ongoing_projects} historical={historical} />
+            <PendingTasksCard
+              pending={data.pending_customer_evaluations}
+              overdue={data.overdue_projects}
+            />
+          </div>
+          <DashboardDetails
+            projects={data.timeline_projects}
+            date={data.as_of}
+            members={data.current_assignments}
           />
-        ) : (
-          <PersonalTasksCard />
-        )}
-      </div>
-      {manager && (
-        <DashboardDetails
-          projects={db.projects}
-          date={date}
-          members={ongoingProjectMembers(db, date)}
-        />
+        </>
+      ) : (
+        <>
+          <EmployeeOverview dashboard={data} />
+          <div className="grid grid-cols-[1.15fr_1fr] items-start gap-6 [&>section]:mb-0">
+            <OngoingProjectsCard projects={data.my_projects} historical={false} personal />
+            <PersonalTasksCard
+              tasks={data.evaluation_tasks}
+              workflows={data.customer_evaluation_tasks}
+            />
+          </div>
+        </>
       )}
     </>
   )

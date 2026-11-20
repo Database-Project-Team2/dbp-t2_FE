@@ -1,23 +1,19 @@
 import { go } from '@/app/routing/navigation'
-import { pendingEvaluationTasks } from '@/shared/domain/evaluationTasks'
-import { workflowLabel } from '@/shared/domain/evaluations'
-import { isPM } from '@/shared/domain/permissions'
+import { WORKFLOW } from '@/shared/model/labels'
+import type { CustomerEvaluationTask, EmployeeDashboard } from '@/shared/api/types'
 import { Button } from '@/shared/ui/actions/Button'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { Empty } from '@/shared/ui/feedback/Empty'
 import { Card } from '@/shared/ui/layout/Card'
 import { SectionHeading } from '@/shared/ui/layout/SectionHeading'
-import { useStore } from '@/store/StoreContext'
 
-export function PersonalTasksCard() {
-  const { db, user } = useStore()
-  const tasks = pendingEvaluationTasks(db, user!)
-  const workflows = db.projects.filter(
-    (project) =>
-      project.actual_end_date &&
-      !project.evaluation_reported_date &&
-      isPM(db, user!, project.project_id),
-  )
+export function PersonalTasksCard({
+  tasks,
+  workflows,
+}: {
+  tasks: EmployeeDashboard['evaluation_tasks']
+  workflows: CustomerEvaluationTask[]
+}) {
   return (
     <Card as="section">
       <SectionHeading>
@@ -26,14 +22,14 @@ export function PersonalTasksCard() {
         </h2>
       </SectionHeading>
       <div className="divide-y divide-line px-7">
-        {tasks.map(({ project, count }) => (
-          <div key={project.project_id} className="flex items-center gap-4 py-5">
+        {tasks.map(({ project_id, project_name, count }) => (
+          <div key={project_id} className="flex items-center gap-4 py-5">
             <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand-ink">
               <Icon name="check" />
             </span>
             <div className="flex-1">
               <b className="text-sm">남은 평가 {count}건</b>
-              <p className="mt-1.5 text-xs text-muted">{project.project_name}</p>
+              <p className="mt-1.5 text-xs text-muted">{project_name}</p>
             </div>
             <Button variant="text" size="plain" onClick={() => go('evaluations/write')}>
               평가하기 <Icon name="arrow" size={15} />
@@ -46,7 +42,7 @@ export function PersonalTasksCard() {
               <Icon name="clock" />
             </span>
             <div className="flex-1">
-              <b className="text-sm">고객평가 {workflowLabel(project)}</b>
+              <b className="text-sm">고객평가 {WORKFLOW[project.workflow_status]}</b>
               <p className="mt-1.5 text-xs text-muted">{project.project_name} · PM 담당</p>
             </div>
             <Button

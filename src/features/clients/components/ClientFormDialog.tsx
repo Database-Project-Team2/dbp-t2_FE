@@ -5,7 +5,7 @@ import { Field } from '@/shared/ui/forms/Field'
 import { FormActions } from '@/shared/ui/forms/FormActions'
 import { Input } from '@/shared/ui/forms/Input'
 import { Modal } from '@/shared/ui/overlays/Modal'
-import { useStore } from '@/store/StoreContext'
+import { clientsApi } from '@/shared/api/resources'
 import type { Client } from '@/shared/model/entities'
 import type { Notice } from '@/app/routing/navigation'
 
@@ -18,17 +18,28 @@ export function ClientFormDialog({
   onClose: () => void
   onNotice: Notice
 }) {
-  const { saveClient } = useStore()
   const [form, setForm] = useState(client)
   const [error, setError] = useState('')
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const [busy, setBusy] = useState(false)
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (busy) return
+    setBusy(true)
+    const input = {
+      client_name: form.client_name,
+      contact_name: form.contact_name,
+      contact_email: form.contact_email,
+      contact_phone_number: form.contact_phone_number || null,
+    }
     try {
-      saveClient(form)
+      if (client.client_id) await clientsApi.update(client.client_id, input)
+      else await clientsApi.create(input)
       onClose()
       onNotice('발주처 정보를 저장했어요.')
     } catch (err) {
       setError((err as Error).message)
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -79,7 +90,9 @@ export function ClientFormDialog({
           <Button variant="secondary" type="button" onClick={onClose}>
             취소
           </Button>
-          <Button variant="primary">저장하기</Button>
+          <Button variant="primary" disabled={busy}>
+            저장하기
+          </Button>
         </FormActions>
       </form>
     </Modal>

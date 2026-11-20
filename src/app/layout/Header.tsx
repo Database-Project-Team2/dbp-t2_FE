@@ -3,7 +3,7 @@ import { Button } from '@/shared/ui/actions/Button'
 import { cn } from '@/shared/lib/cn'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { canAccessPage } from '@/shared/domain/permissions'
-import { useStore } from '@/store/StoreContext'
+import { useSession } from '../session/SessionContext'
 import { AccountMenu } from './AccountMenu'
 import { navigation } from '../routing/navigation'
 
@@ -12,7 +12,7 @@ interface HeaderProps {
   onSearch: () => void
 }
 export function Header({ route, onSearch }: HeaderProps) {
-  const { user } = useStore()
+  const { user } = useSession()
   const page = route.split('/')[0]
   const items = navigation.filter((item) => canAccessPage(user!, item.id))
   return (

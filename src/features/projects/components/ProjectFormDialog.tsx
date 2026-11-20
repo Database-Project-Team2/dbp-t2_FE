@@ -9,7 +9,9 @@ import { Input } from '@/shared/ui/forms/Input'
 import { Modal } from '@/shared/ui/overlays/Modal'
 import { Select } from '@/shared/ui/forms/Select'
 import { type Notice, go } from '@/app/routing/navigation'
-import { useStore } from '@/store/StoreContext'
+import { useSession } from '@/app/session/SessionContext'
+import { clientsApi, projectsApi } from '@/shared/api/resources'
+import { useApi } from '@/shared/api/useApi'
 import type { Project } from '@/shared/model/entities'
 
 export function ProjectFormDialog({
@@ -21,19 +23,42 @@ export function ProjectFormDialog({
   onClose: () => void
   onNotice: Notice
 }) {
-  const { db, today, saveProject } = useStore()
+  const { today } = useSession()
   const [form, setForm] = useState(project)
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  // 수정은 프로젝트별 발주처 선택 API, 등록은 발주처 목록(경영진 전체)을 사용합니다.
+  const clients =
+    useApi(
+      () =>
+        project.project_id
+          ? projectsApi.clientOptions(project.project_id)
+          : clientsApi.search().then((page) => page.data),
+      [project.project_id],
+    ).data ?? []
+  const clientId = form.client_id || clients[0]?.client_id || 0
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (busy) return
+    setBusy(true)
+    const input = {
+      project_name: form.project_name,
+      client_id: clientId,
+      actual_start_date: form.actual_start_date,
+      planned_end_date: form.planned_end_date,
+    }
     try {
-      const id = saveProject(form)
+      const saved = project.project_id
+        ? await projectsApi.update(project.project_id, input)
+        : await projectsApi.create(input)
       onNotice('프로젝트 정보를 저장했어요.')
       onClose()
-      go(`projects/${id}`)
+      go(`projects/${saved.project_id}`)
     } catch (err) {
       setError((err as Error).message)
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -57,10 +82,10 @@ export function ProjectFormDialog({
           </Field>
           <Field label="발주처" wide>
             <Select
-              value={form.client_id}
+              value={clientId}
               onChange={(e) => setForm({ ...form, client_id: Number(e.target.value) })}
             >
-              {db.clients.map((c) => (
+              {clients.map((c) => (
                 <option key={c.client_id} value={c.client_id}>
                   {c.client_name}
                 </option>
@@ -93,7 +118,7 @@ export function ProjectFormDialog({
           <Button variant="secondary" type="button" onClick={onClose}>
             취소
           </Button>
-          <Button variant="primary" type="submit">
+          <Button variant="primary" type="submit" disabled={busy || !clientId}>
             {project.project_id ? '변경 사항 저장' : '프로젝트 등록'}
           </Button>
         </FormActions>
