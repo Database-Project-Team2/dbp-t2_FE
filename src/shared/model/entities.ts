@@ -50,31 +50,3 @@ export interface Member {
   assignment_start_date: string | null
   assignment_end_date: string | null
 }
-
-export interface Evaluation {
-  evaluation_id: number
-  target_member_id: number
-  evaluation_type: EvaluationType
-  evaluator_member_id: number | null
-  registered_by_member_id: number
-  evaluated_date: string
-  work_performance_score: number
-  work_performance_comment: string
-  communication_score: number
-  communication_comment: string
-}
-
-export interface Database {
-  employees: Employee[]
-  clients: Client[]
-  projects: Project[]
-  members: Member[]
-  evaluations: Evaluation[]
-}
-
-/** 일반 구성원에게는 의견 필드를 전달하지 않습니다. */
-export type EvaluationResult = Omit<
-  Evaluation,
-  'work_performance_comment' | 'communication_comment'
-> &
-  Partial<Pick<Evaluation, 'work_performance_comment' | 'communication_comment'>>
