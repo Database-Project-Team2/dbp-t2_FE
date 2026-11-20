@@ -14,7 +14,7 @@ test('장면 5: 평가 검색 → CSV 다운로드 → 한빛유통 담당자 �
     .getByRole('link', { name: '평가' })
     .click()
   await page.getByLabel('피평가 직원 검색').fill('이서연')
-  await expect(page.locator('tbody tr')).toHaveCount(3)
+  await expect(page.locator('tbody tr')).toHaveCount(7)
 
   const [download] = await Promise.all([
     page.waitForEvent('download'),
@@ -26,7 +26,7 @@ test('장면 5: 평가 검색 → CSV 다운로드 → 한빛유통 담당자 �
   const csv = readFileSync(file, 'utf8')
   expect(csv.startsWith('﻿')).toBe(true)
   expect(csv).toContain('업무수행 의견')
-  expect(csv.trim().split('\r\n')).toHaveLength(4)
+  expect(csv.trim().split('\r\n')).toHaveLength(8)
 
   await page
     .getByRole('navigation', { name: '주 메뉴' })
@@ -58,7 +58,7 @@ test('장면 5: 평가 검색 → CSV 다운로드 → 한빛유통 담당자 �
 })
 
 test('장면 5 보강: 일반 직원의 평가 결과와 CSV에는 의견이 없다', async ({ page }) => {
-  await login(page, 'demo03')
+  await login(page, 'demo04')
   await page
     .getByRole('navigation', { name: '주 메뉴' })
     .getByRole('link', { name: '평가' })

@@ -139,6 +139,20 @@
       "job_category": "RESEARCH",
       "login_id": "demo10",
       "system_role": "EMPLOYEE"
+    },
+    {
+      "employee_id": 11,
+      "employee_no": "20250006",
+      "employee_name": "오지수",
+      "education": "대졸(학사)",
+      "employment_status": "ACTIVE",
+      "hire_date": "2025-06-02",
+      "resignation_date": null,
+      "total_career_months": 14,
+      "skill_description": "시장 조사, 고객 인터뷰, 데이터 시각화",
+      "job_category": "MARKETING",
+      "login_id": "demo11",
+      "system_role": "EMPLOYEE"
     }
   ],
   "clients": [
@@ -208,6 +222,17 @@
       "evaluation_requested_date": null,
       "evaluation_received_date": null,
       "evaluation_reported_date": null
+    },
+    {
+      "project_id": 5,
+      "project_name": "유통 사내 포털 개선",
+      "client_id": 1,
+      "actual_start_date": "2025-10-06",
+      "planned_end_date": "2025-12-19",
+      "actual_end_date": "2025-12-19",
+      "evaluation_requested_date": "2025-12-22",
+      "evaluation_received_date": "2025-12-29",
+      "evaluation_reported_date": "2026-01-02"
     }
   ],
   "members": [
@@ -370,6 +395,38 @@
       "project_role": "TESTER",
       "assignment_start_date": "2026-07-06",
       "assignment_end_date": "2026-09-30"
+    },
+    {
+      "member_id": 21,
+      "project_id": 5,
+      "employee_id": 3,
+      "project_role": "PM",
+      "assignment_start_date": "2025-10-06",
+      "assignment_end_date": "2025-12-19"
+    },
+    {
+      "member_id": 22,
+      "project_id": 5,
+      "employee_id": 5,
+      "project_role": "PL",
+      "assignment_start_date": "2025-10-06",
+      "assignment_end_date": "2025-12-19"
+    },
+    {
+      "member_id": 23,
+      "project_id": 5,
+      "employee_id": 2,
+      "project_role": "TESTER",
+      "assignment_start_date": "2025-10-06",
+      "assignment_end_date": "2025-12-19"
+    },
+    {
+      "member_id": 24,
+      "project_id": 3,
+      "employee_id": 11,
+      "project_role": "ANALYST",
+      "assignment_start_date": null,
+      "assignment_end_date": null
     }
   ],
   "evaluations": [
@@ -381,9 +438,9 @@
       "registered_by_member_id": 1,
       "evaluated_date": "2026-04-02",
       "work_performance_score": 4,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "기본 요구사항을 정확히 구현하고 문서도 꼼꼼히 남겼습니다.",
       "communication_score": 5,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "회의 내용을 정리해 모두가 같은 기준으로 일하도록 도왔습니다."
     },
     {
       "evaluation_id": 2,
@@ -393,9 +450,9 @@
       "registered_by_member_id": 1,
       "evaluated_date": "2026-04-02",
       "work_performance_score": 5,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "어려운 장애 원인을 끝까지 추적해 재발 방지책까지 정리했습니다.",
       "communication_score": 3,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "전달 내용은 정확했지만 질문에 대한 응답이 다소 늦었습니다."
     },
     {
       "evaluation_id": 3,
@@ -405,9 +462,9 @@
       "registered_by_member_id": 1,
       "evaluated_date": "2026-04-02",
       "work_performance_score": 3,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "맡은 업무는 마쳤지만 마감 직전에 수정이 몰렸습니다.",
       "communication_score": 4,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "의견이 다를 때도 근거를 들어 차분하게 조율했습니다."
     },
     {
       "evaluation_id": 4,
@@ -417,9 +474,9 @@
       "registered_by_member_id": 1,
       "evaluated_date": "2026-04-02",
       "work_performance_score": 4,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "맡은 기능을 안정적으로 완성했고 검토 의견도 빠르게 반영했습니다.",
       "communication_score": 5,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "회의 내용을 정리해 모두가 같은 기준으로 일하도록 도왔습니다."
     },
     {
       "evaluation_id": 5,
@@ -429,9 +486,9 @@
       "registered_by_member_id": 1,
       "evaluated_date": "2026-04-02",
       "work_performance_score": 5,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "요구사항이 바뀌어도 설계를 빠르게 조정해 품질을 지켰습니다.",
       "communication_score": 3,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "전달 내용은 정확했지만 질문에 대한 응답이 다소 늦었습니다."
     },
     {
       "evaluation_id": 6,
@@ -441,9 +498,9 @@
       "registered_by_member_id": 1,
       "evaluated_date": "2026-03-31",
       "work_performance_score": 3,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "맡은 업무는 마쳤지만 마감 직전에 수정이 몰렸습니다.",
       "communication_score": 4,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "작업 상태를 꾸준히 업데이트해 협업이 수월했습니다."
     },
     {
       "evaluation_id": 7,
@@ -453,9 +510,9 @@
       "registered_by_member_id": 1,
       "evaluated_date": "2026-03-31",
       "work_performance_score": 4,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "데이터 정합성을 꼼꼼히 확인해 운영 오류를 줄였습니다.",
       "communication_score": 5,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "회의 내용을 정리해 모두가 같은 기준으로 일하도록 도왔습니다."
     },
     {
       "evaluation_id": 8,
@@ -465,9 +522,9 @@
       "registered_by_member_id": 1,
       "evaluated_date": "2026-03-31",
       "work_performance_score": 5,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "핵심 기능을 일정보다 먼저 완성하고 남은 시간에 테스트 범위를 넓혔습니다.",
       "communication_score": 3,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "전달 내용은 정확했지만 질문에 대한 응답이 다소 늦었습니다."
     },
     {
       "evaluation_id": 9,
@@ -477,9 +534,9 @@
       "registered_by_member_id": 1,
       "evaluated_date": "2026-03-31",
       "work_performance_score": 3,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "맡은 업무는 마쳤지만 마감 직전에 수정이 몰렸습니다.",
       "communication_score": 4,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "리뷰 의견을 존중하며 건설적으로 대화했습니다."
     },
     {
       "evaluation_id": 10,
@@ -489,9 +546,9 @@
       "registered_by_member_id": 1,
       "evaluated_date": "2026-03-31",
       "work_performance_score": 4,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "일정 안에 결과물을 냈고 테스트 결함도 적었습니다.",
       "communication_score": 5,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "회의 내용을 정리해 모두가 같은 기준으로 일하도록 도왔습니다."
     },
     {
       "evaluation_id": 11,
@@ -501,9 +558,9 @@
       "registered_by_member_id": 2,
       "evaluated_date": "2026-03-31",
       "work_performance_score": 5,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "맡은 영역 밖의 문제도 먼저 찾아 해결해 팀 일정을 앞당겼습니다.",
       "communication_score": 3,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "전달 내용은 정확했지만 질문에 대한 응답이 다소 늦었습니다."
     },
     {
       "evaluation_id": 12,
@@ -513,9 +570,9 @@
       "registered_by_member_id": 3,
       "evaluated_date": "2026-03-31",
       "work_performance_score": 3,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "맡은 업무는 마쳤지만 마감 직전에 수정이 몰렸습니다.",
       "communication_score": 4,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "질문에 빠르게 답하고 필요한 자료를 제때 공유했습니다."
     },
     {
       "evaluation_id": 13,
@@ -525,9 +582,9 @@
       "registered_by_member_id": 4,
       "evaluated_date": "2026-03-31",
       "work_performance_score": 4,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "기본 요구사항을 정확히 구현하고 문서도 꼼꼼히 남겼습니다.",
       "communication_score": 5,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "회의 내용을 정리해 모두가 같은 기준으로 일하도록 도왔습니다."
     },
     {
       "evaluation_id": 14,
@@ -537,9 +594,9 @@
       "registered_by_member_id": 5,
       "evaluated_date": "2026-03-31",
       "work_performance_score": 5,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "어려운 장애 원인을 끝까지 추적해 재발 방지책까지 정리했습니다.",
       "communication_score": 3,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "전달 내용은 정확했지만 질문에 대한 응답이 다소 늦었습니다."
     },
     {
       "evaluation_id": 15,
@@ -549,9 +606,9 @@
       "registered_by_member_id": 6,
       "evaluated_date": "2026-07-05",
       "work_performance_score": 3,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "맡은 업무는 마쳤지만 마감 직전에 수정이 몰렸습니다.",
       "communication_score": 4,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "의견이 다를 때도 근거를 들어 차분하게 조율했습니다."
     },
     {
       "evaluation_id": 16,
@@ -561,9 +618,9 @@
       "registered_by_member_id": 6,
       "evaluated_date": "2026-07-05",
       "work_performance_score": 4,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "맡은 기능을 안정적으로 완성했고 검토 의견도 빠르게 반영했습니다.",
       "communication_score": 5,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "회의 내용을 정리해 모두가 같은 기준으로 일하도록 도왔습니다."
     },
     {
       "evaluation_id": 17,
@@ -573,9 +630,9 @@
       "registered_by_member_id": 6,
       "evaluated_date": "2026-07-03",
       "work_performance_score": 5,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "요구사항이 바뀌어도 설계를 빠르게 조정해 품질을 지켰습니다.",
       "communication_score": 3,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "전달 내용은 정확했지만 질문에 대한 응답이 다소 늦었습니다."
     },
     {
       "evaluation_id": 18,
@@ -585,9 +642,9 @@
       "registered_by_member_id": 6,
       "evaluated_date": "2026-07-03",
       "work_performance_score": 3,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "맡은 업무는 마쳤지만 마감 직전에 수정이 몰렸습니다.",
       "communication_score": 4,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "작업 상태를 꾸준히 업데이트해 협업이 수월했습니다."
     },
     {
       "evaluation_id": 19,
@@ -597,9 +654,9 @@
       "registered_by_member_id": 6,
       "evaluated_date": "2026-07-03",
       "work_performance_score": 4,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "데이터 정합성을 꼼꼼히 확인해 운영 오류를 줄였습니다.",
       "communication_score": 5,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "회의 내용을 정리해 모두가 같은 기준으로 일하도록 도왔습니다."
     },
     {
       "evaluation_id": 20,
@@ -609,9 +666,9 @@
       "registered_by_member_id": 6,
       "evaluated_date": "2026-07-03",
       "work_performance_score": 5,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "핵심 기능을 일정보다 먼저 완성하고 남은 시간에 테스트 범위를 넓혔습니다.",
       "communication_score": 3,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "전달 내용은 정확했지만 질문에 대한 응답이 다소 늦었습니다."
     },
     {
       "evaluation_id": 21,
@@ -621,9 +678,9 @@
       "registered_by_member_id": 6,
       "evaluated_date": "2026-07-03",
       "work_performance_score": 3,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "맡은 업무는 마쳤지만 마감 직전에 수정이 몰렸습니다.",
       "communication_score": 4,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "리뷰 의견을 존중하며 건설적으로 대화했습니다."
     },
     {
       "evaluation_id": 22,
@@ -633,9 +690,9 @@
       "registered_by_member_id": 7,
       "evaluated_date": "2026-07-03",
       "work_performance_score": 4,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "일정 안에 결과물을 냈고 테스트 결함도 적었습니다.",
       "communication_score": 5,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "회의 내용을 정리해 모두가 같은 기준으로 일하도록 도왔습니다."
     },
     {
       "evaluation_id": 23,
@@ -645,9 +702,9 @@
       "registered_by_member_id": 8,
       "evaluated_date": "2026-07-03",
       "work_performance_score": 5,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "맡은 영역 밖의 문제도 먼저 찾아 해결해 팀 일정을 앞당겼습니다.",
       "communication_score": 3,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "전달 내용은 정확했지만 질문에 대한 응답이 다소 늦었습니다."
     },
     {
       "evaluation_id": 24,
@@ -657,9 +714,9 @@
       "registered_by_member_id": 9,
       "evaluated_date": "2026-07-03",
       "work_performance_score": 3,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "맡은 업무는 마쳤지만 마감 직전에 수정이 몰렸습니다.",
       "communication_score": 4,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "질문에 빠르게 답하고 필요한 자료를 제때 공유했습니다."
     },
     {
       "evaluation_id": 25,
@@ -669,9 +726,9 @@
       "registered_by_member_id": 10,
       "evaluated_date": "2026-07-03",
       "work_performance_score": 4,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "기본 요구사항을 정확히 구현하고 문서도 꼼꼼히 남겼습니다.",
       "communication_score": 5,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "회의 내용을 정리해 모두가 같은 기준으로 일하도록 도왔습니다."
     },
     {
       "evaluation_id": 26,
@@ -681,9 +738,9 @@
       "registered_by_member_id": 16,
       "evaluated_date": "2026-09-30",
       "work_performance_score": 5,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "어려운 장애 원인을 끝까지 추적해 재발 방지책까지 정리했습니다.",
       "communication_score": 3,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "전달 내용은 정확했지만 질문에 대한 응답이 다소 늦었습니다."
     },
     {
       "evaluation_id": 27,
@@ -693,9 +750,9 @@
       "registered_by_member_id": 16,
       "evaluated_date": "2026-09-30",
       "work_performance_score": 3,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "맡은 업무는 마쳤지만 마감 직전에 수정이 몰렸습니다.",
       "communication_score": 4,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "의견이 다를 때도 근거를 들어 차분하게 조율했습니다."
     },
     {
       "evaluation_id": 28,
@@ -705,9 +762,9 @@
       "registered_by_member_id": 16,
       "evaluated_date": "2026-09-30",
       "work_performance_score": 4,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "맡은 기능을 안정적으로 완성했고 검토 의견도 빠르게 반영했습니다.",
       "communication_score": 5,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "회의 내용을 정리해 모두가 같은 기준으로 일하도록 도왔습니다."
     },
     {
       "evaluation_id": 29,
@@ -717,9 +774,9 @@
       "registered_by_member_id": 16,
       "evaluated_date": "2026-09-30",
       "work_performance_score": 5,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "요구사항이 바뀌어도 설계를 빠르게 조정해 품질을 지켰습니다.",
       "communication_score": 3,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "전달 내용은 정확했지만 질문에 대한 응답이 다소 늦었습니다."
     },
     {
       "evaluation_id": 30,
@@ -729,9 +786,9 @@
       "registered_by_member_id": 16,
       "evaluated_date": "2026-09-30",
       "work_performance_score": 3,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "맡은 업무는 마쳤지만 마감 직전에 수정이 몰렸습니다.",
       "communication_score": 4,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "작업 상태를 꾸준히 업데이트해 협업이 수월했습니다."
     },
     {
       "evaluation_id": 31,
@@ -741,9 +798,9 @@
       "registered_by_member_id": 17,
       "evaluated_date": "2026-09-30",
       "work_performance_score": 4,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "데이터 정합성을 꼼꼼히 확인해 운영 오류를 줄였습니다.",
       "communication_score": 5,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "회의 내용을 정리해 모두가 같은 기준으로 일하도록 도왔습니다."
     },
     {
       "evaluation_id": 32,
@@ -753,9 +810,9 @@
       "registered_by_member_id": 18,
       "evaluated_date": "2026-09-30",
       "work_performance_score": 5,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "핵심 기능을 일정보다 먼저 완성하고 남은 시간에 테스트 범위를 넓혔습니다.",
       "communication_score": 3,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "전달 내용은 정확했지만 질문에 대한 응답이 다소 늦었습니다."
     },
     {
       "evaluation_id": 33,
@@ -765,9 +822,9 @@
       "registered_by_member_id": 19,
       "evaluated_date": "2026-09-30",
       "work_performance_score": 3,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "맡은 업무는 마쳤지만 마감 직전에 수정이 몰렸습니다.",
       "communication_score": 4,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "리뷰 의견을 존중하며 건설적으로 대화했습니다."
     },
     {
       "evaluation_id": 34,
@@ -777,9 +834,141 @@
       "registered_by_member_id": 20,
       "evaluated_date": "2026-09-30",
       "work_performance_score": 4,
-      "work_performance_comment": "맡은 업무를 수행하고 결과를 공유했습니다.",
+      "work_performance_comment": "일정 안에 결과물을 냈고 테스트 결함도 적었습니다.",
       "communication_score": 5,
-      "communication_comment": "일정과 진행 상황을 팀원에게 명확하게 전달했습니다."
+      "communication_comment": "회의 내용을 정리해 모두가 같은 기준으로 일하도록 도왔습니다."
+    },
+    {
+      "evaluation_id": 35,
+      "target_member_id": 21,
+      "evaluation_type": "CLIENT",
+      "evaluator_member_id": null,
+      "registered_by_member_id": 21,
+      "evaluated_date": "2025-12-24",
+      "work_performance_score": 5,
+      "work_performance_comment": "맡은 영역 밖의 문제도 먼저 찾아 해결해 팀 일정을 앞당겼습니다.",
+      "communication_score": 4,
+      "communication_comment": "의견이 다를 때도 근거를 들어 차분하게 조율했습니다."
+    },
+    {
+      "evaluation_id": 36,
+      "target_member_id": 22,
+      "evaluation_type": "CLIENT",
+      "evaluator_member_id": null,
+      "registered_by_member_id": 21,
+      "evaluated_date": "2025-12-26",
+      "work_performance_score": 4,
+      "work_performance_comment": "맡은 기능을 안정적으로 완성했고 검토 의견도 빠르게 반영했습니다.",
+      "communication_score": 5,
+      "communication_comment": "진행 상황과 위험 요소를 먼저 공유해 의사결정이 빨라졌습니다."
+    },
+    {
+      "evaluation_id": 37,
+      "target_member_id": 23,
+      "evaluation_type": "CLIENT",
+      "evaluator_member_id": null,
+      "registered_by_member_id": 21,
+      "evaluated_date": "2025-12-27",
+      "work_performance_score": 4,
+      "work_performance_comment": "기본 요구사항을 정확히 구현하고 문서도 꼼꼼히 남겼습니다.",
+      "communication_score": 4,
+      "communication_comment": "리뷰 의견을 존중하며 건설적으로 대화했습니다."
+    },
+    {
+      "evaluation_id": 38,
+      "target_member_id": 22,
+      "evaluation_type": "PM",
+      "evaluator_member_id": 21,
+      "registered_by_member_id": 21,
+      "evaluated_date": "2025-12-19",
+      "work_performance_score": 5,
+      "work_performance_comment": "어려운 장애 원인을 끝까지 추적해 재발 방지책까지 정리했습니다.",
+      "communication_score": 4,
+      "communication_comment": "작업 상태를 꾸준히 업데이트해 협업이 수월했습니다."
+    },
+    {
+      "evaluation_id": 39,
+      "target_member_id": 23,
+      "evaluation_type": "PM",
+      "evaluator_member_id": 21,
+      "registered_by_member_id": 21,
+      "evaluated_date": "2025-12-19",
+      "work_performance_score": 4,
+      "work_performance_comment": "데이터 정합성을 꼼꼼히 확인해 운영 오류를 줄였습니다.",
+      "communication_score": 3,
+      "communication_comment": "필요한 공유는 했지만 진행 상황 보고가 늦은 적이 있었습니다."
+    },
+    {
+      "evaluation_id": 40,
+      "target_member_id": 22,
+      "evaluation_type": "PEER",
+      "evaluator_member_id": 21,
+      "registered_by_member_id": 21,
+      "evaluated_date": "2025-12-19",
+      "work_performance_score": 4,
+      "work_performance_comment": "맡은 기능을 안정적으로 완성했고 검토 의견도 빠르게 반영했습니다.",
+      "communication_score": 5,
+      "communication_comment": "회의 내용을 정리해 모두가 같은 기준으로 일하도록 도왔습니다."
+    },
+    {
+      "evaluation_id": 41,
+      "target_member_id": 23,
+      "evaluation_type": "PEER",
+      "evaluator_member_id": 21,
+      "registered_by_member_id": 21,
+      "evaluated_date": "2025-12-19",
+      "work_performance_score": 3,
+      "work_performance_comment": "완성도는 무난했으며 일정 관리에 조금 더 신경 쓰면 좋겠습니다.",
+      "communication_score": 4,
+      "communication_comment": "리뷰 의견을 존중하며 건설적으로 대화했습니다."
+    },
+    {
+      "evaluation_id": 42,
+      "target_member_id": 21,
+      "evaluation_type": "PEER",
+      "evaluator_member_id": 22,
+      "registered_by_member_id": 22,
+      "evaluated_date": "2025-12-20",
+      "work_performance_score": 5,
+      "work_performance_comment": "어려운 장애 원인을 끝까지 추적해 재발 방지책까지 정리했습니다.",
+      "communication_score": 5,
+      "communication_comment": "진행 상황과 위험 요소를 먼저 공유해 의사결정이 빨라졌습니다."
+    },
+    {
+      "evaluation_id": 43,
+      "target_member_id": 23,
+      "evaluation_type": "PEER",
+      "evaluator_member_id": 22,
+      "registered_by_member_id": 22,
+      "evaluated_date": "2025-12-20",
+      "work_performance_score": 4,
+      "work_performance_comment": "데이터 정합성을 꼼꼼히 확인해 운영 오류를 줄였습니다.",
+      "communication_score": 4,
+      "communication_comment": "의견이 다를 때도 근거를 들어 차분하게 조율했습니다."
+    },
+    {
+      "evaluation_id": 44,
+      "target_member_id": 21,
+      "evaluation_type": "PEER",
+      "evaluator_member_id": 23,
+      "registered_by_member_id": 23,
+      "evaluated_date": "2025-12-20",
+      "work_performance_score": 4,
+      "work_performance_comment": "맡은 기능을 안정적으로 완성했고 검토 의견도 빠르게 반영했습니다.",
+      "communication_score": 5,
+      "communication_comment": "고객 요청을 정확히 이해하고 팀에 알기 쉽게 전달했습니다."
+    },
+    {
+      "evaluation_id": 45,
+      "target_member_id": 22,
+      "evaluation_type": "PEER",
+      "evaluator_member_id": 23,
+      "registered_by_member_id": 23,
+      "evaluated_date": "2025-12-20",
+      "work_performance_score": 5,
+      "work_performance_comment": "요구사항이 바뀌어도 설계를 빠르게 조정해 품질을 지켰습니다.",
+      "communication_score": 4,
+      "communication_comment": "리뷰 의견을 존중하며 건설적으로 대화했습니다."
     }
   ]
 }

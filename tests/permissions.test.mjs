@@ -225,7 +225,7 @@ test('PM opinions are visible only in their PM project; CSV cannot expose other 
   )
   const ordinaryCsv = evaluationCsvContent(
     db,
-    db.employees[2],
+    db.employees[3],
     db.evaluations.map((evaluation) => evaluation.evaluation_id),
   )
   assert(!ordinaryCsv.includes('의견'))

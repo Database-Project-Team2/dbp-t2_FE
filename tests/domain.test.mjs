@@ -42,11 +42,11 @@ const candidate = (overrides = {}) => ({
 })
 test('SQL seed retains all table relationships and row counts', () => {
   assert.deepEqual(Object.fromEntries(Object.entries(seed).map(([k, v]) => [k, v.length])), {
-    employees: 10,
+    employees: 11,
     clients: 3,
-    projects: 4,
-    members: 20,
-    evaluations: 34,
+    projects: 5,
+    members: 24,
+    evaluations: 45,
   })
   for (const m of seed.members) {
     assert(seed.employees.some((e) => e.employee_id === m.employee_id))
@@ -68,10 +68,10 @@ test('historical assignment is inclusive and excludes unassigned members', () =>
   assert(!isAssigned(seed.members[14], '2026-11-10'))
 })
 test('role scopes limit projects, employee histories and evaluation results', () => {
-  assert.equal(visibleProjects(seed, manager).length, 4)
+  assert.equal(visibleProjects(seed, manager).length, 5)
   assert.deepEqual(
     visibleProjects(seed, employee).map((p) => p.project_id),
-    [1, 3],
+    [1, 3, 5],
   )
   assert(visibleHistory(seed, employee).every((m) => m.employee_id === 2))
   assert(visibleEvaluations(seed, employee).length > 0)
@@ -82,7 +82,7 @@ test('role scopes limit projects, employee histories and evaluation results', ()
   )
   assert(
     visibleEvaluations(seed, pm).every((e) =>
-      [2, 4].includes(seed.members.find((m) => m.member_id === e.target_member_id).project_id),
+      [2, 4, 5].includes(seed.members.find((m) => m.member_id === e.target_member_id).project_id),
     ),
   )
 })
@@ -212,7 +212,7 @@ test('closing project before an existing member period is rejected', () =>
   ))
 test('self sign-up generates next year-specific employee number', () => {
   assert.equal(nextEmployeeNo(seed, '2026-11-10'), '20260001')
-  assert.equal(nextEmployeeNo(seed, '2025-11-10'), '20250006')
+  assert.equal(nextEmployeeNo(seed, '2025-11-10'), '20250007')
   assert.equal(normalizeId(' Demo01 '), 'demo01')
 })
 test('CSV escapes quotes, newlines, and spreadsheet formulas', () => {
@@ -235,7 +235,7 @@ test('assigned employees can view their projects before starting, while career r
       (m) => m.employee_id === 9 && m.assignment_start_date === null,
     ),
   )
-  assert.equal(visibleProjects(db, manager).length, 4)
+  assert.equal(visibleProjects(db, manager).length, 5)
   db.members.find((m) => m.employee_id === 9).assignment_start_date = '2026-09-01'
   assert.deepEqual(
     visibleProjects(db, unassigned).map((p) => p.project_id),

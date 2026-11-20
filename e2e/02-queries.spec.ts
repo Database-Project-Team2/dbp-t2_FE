@@ -48,10 +48,10 @@ test('장면 2: 경영진 대시보드 수치 → 기준일 2026-05-01 → 같�
   await expect(page.locator('tbody tr')).toHaveCount(0)
 })
 
-test('장면 2 보강: 일반 직원(demo03)은 소속 프로젝트만 보고 경영진 메뉴는 없다', async ({
+test('장면 2 보강: 일반 직원(demo04)은 소속 프로젝트만 보고 경영진 메뉴는 없다', async ({
   page,
 }) => {
-  await login(page, 'demo03')
+  await login(page, 'demo04')
   const nav = page.getByRole('navigation', { name: '주 메뉴' })
   await expect(nav.getByRole('link', { name: '직원' })).toHaveCount(0)
   await expect(nav.getByRole('link', { name: '투입 이력' })).toHaveCount(0)
