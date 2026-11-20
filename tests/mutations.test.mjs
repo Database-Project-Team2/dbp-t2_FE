@@ -77,9 +77,9 @@ test('membership creation allocates a unique ID and rejects duplicate submission
     assignment_end_date: null,
   }
   const next = saveMemberInState(original, original.employees[0], input)
-  assert.equal(original.members.length, 20)
-  assert.equal(next.members.length, 21)
-  assert.equal(next.members.at(-1).member_id, 21)
+  assert.equal(original.members.length, 24)
+  assert.equal(next.members.length, 25)
+  assert.equal(next.members.at(-1).member_id, 25)
   assert.throws(() => saveMemberInState(next, original.employees[0], input), /이미 등록/)
 })
 
