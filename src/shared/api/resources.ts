@@ -110,11 +110,24 @@ export const employeesApi = {
   search: (query: Query = {}) =>
     api.page<EmployeeListItem>('/employees', { size: LIST_SIZE, ...query }),
   detail: (employeeId: number) => api.get<Employee>(`/employees/${employeeId}`),
+  updateMe: (
+    input: Partial<Pick<Employee, 'education' | 'total_career_months' | 'skill_description'>>,
+  ) => api.patch<Employee>('/employees/me', input),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    api.patch<void>('/employees/me/password', {
+      current_password: currentPassword,
+      new_password: newPassword,
+    }),
+  career: (employeeId: number, query: Query = {}) =>
+    api.get<AssignmentView[]>(`/employees/${employeeId}/career`, query),
+  careerCsv: (employeeId: number, query: Query = {}) =>
+    api.file(`/employees/${employeeId}/career.csv`, query),
 }
 
 export const assignmentsApi = {
   search: (query: Query = {}) =>
     api.page<AssignmentView>('/assignments', { size: LIST_SIZE, ...query }),
+  exportCsv: (query: Query = {}) => api.file('/assignments/export.csv', query),
 }
 
 export const clientsApi = {

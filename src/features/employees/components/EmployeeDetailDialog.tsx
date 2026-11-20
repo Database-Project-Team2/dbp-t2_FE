@@ -4,15 +4,17 @@ import { Button } from '@/shared/ui/actions/Button'
 import { careerLabel } from '@/shared/lib/format'
 import { cn } from '@/shared/lib/cn'
 import { dateLabel } from '@/shared/lib/date'
-import { downloadCsv, csvContent } from '@/shared/lib/csv'
+import { downloadBlob } from '@/shared/lib/csv'
 import { Empty } from '@/shared/ui/feedback/Empty'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { InfoGrid } from '@/shared/ui/data/InfoGrid'
 import { ROLES, EVAL_TYPES } from '@/shared/model/labels'
 import { SectionHeading } from '@/shared/ui/layout/SectionHeading'
 import { Table } from '@/shared/ui/data/Table'
-import { useStore } from '@/store/StoreContext'
-import { visibleHistory, isManagement } from '@/shared/domain/permissions'
+import { useSession } from '@/app/session/SessionContext'
+import { isManagement } from '@/shared/domain/permissions'
+import { employeesApi, evaluationsApi } from '@/shared/api/resources'
+import { useApi } from '@/shared/api/useApi'
 import type { Employee } from '@/shared/model/entities'
 import type { Notice } from '@/app/routing/navigation'
 import { EmployeeIdentity } from './EmployeeIdentity'
@@ -26,27 +28,21 @@ export function EmployeeDetailDialog({
   onNotice: Notice
   layout?: 'page' | 'dialog'
 }) {
-  const { db, user } = useStore()
-  const members = visibleHistory(db, user!).filter((m) => m.employee_id === e.employee_id)
-  const evaluations = isManagement(user!)
-    ? db.evaluations.filter((v) => members.some((m) => m.member_id === v.target_member_id))
-    : []
-  const exportCareer = () => {
-    downloadCsv(
-      `${e.employee_name}_경력기초자료.csv`,
-      csvContent(
-        ['사번', '직원명', '총 경력(개월)', '프로젝트', '역할', '투입 시작일', '투입 종료일'],
-        members.map((m) => [
-          e.employee_no,
-          e.employee_name,
-          e.total_career_months,
-          db.projects.find((p) => p.project_id === m.project_id)?.project_name,
-          ROLES[m.project_role],
-          m.assignment_start_date || '투입 전',
-          m.assignment_end_date || '',
-        ]),
-      ),
-    )
+  const { user } = useSession()
+  const manager = isManagement(user!)
+  // 경영진은 투입 전 배정까지, 본인은 실제 투입 이력만 서버가 돌려줍니다.
+  const members = useApi(() => employeesApi.career(e.employee_id), [e.employee_id]).data ?? []
+  const evaluations =
+    useApi(
+      () =>
+        manager
+          ? evaluationsApi.search({ target_employee_id: e.employee_id }).then((page) => page.data)
+          : Promise.resolve([]),
+      [manager, e.employee_id],
+    ).data ?? []
+  const exportCareer = async () => {
+    const file = await employeesApi.careerCsv(e.employee_id)
+    downloadBlob(file.filename, file.blob)
     onNotice('경력 기초자료를 CSV로 내려받았어요.')
   }
   return (
@@ -100,9 +96,7 @@ export function EmployeeDetailDialog({
             <li key={m.member_id} className="flex items-center gap-3.5 py-4">
               <span className="size-2 shrink-0 rounded-full border-2 border-brand-line" />
               <div className="min-w-0 flex-1">
-                <b className="text-sm font-medium">
-                  {db.projects.find((p) => p.project_id === m.project_id)?.project_name}
-                </b>
+                <b className="text-sm font-medium">{m.project.project_name}</b>
                 <p className="mt-1.5 text-xs text-muted">
                   {dateLabel(m.assignment_start_date)} ~{' '}
                   {m.assignment_end_date
@@ -122,7 +116,7 @@ export function EmployeeDetailDialog({
           message="프로젝트에 투입되면 경력이 여기에 표시돼요."
         />
       )}
-      {isManagement(user!) && (
+      {manager && (
         <div className="mt-7 [&_h3]:text-sm [&_h3_span]:ml-1 [&_h3_span]:text-brand-ink [&>p]:mt-2 [&>p]:mb-5 [&>p]:text-[11px] [&>p]:text-muted">
           <h3>
             평가 기초자료 <span>{evaluations.length}건</span>
@@ -142,15 +136,7 @@ export function EmployeeDetailDialog({
                 {evaluations.map((v) => (
                   <tr key={v.evaluation_id}>
                     <td>{EVAL_TYPES[v.evaluation_type]}</td>
-                    <td>
-                      {
-                        db.projects.find(
-                          (p) =>
-                            p.project_id ===
-                            members.find((m) => m.member_id === v.target_member_id)?.project_id,
-                        )?.project_name
-                      }
-                    </td>
+                    <td>{v.project_name}</td>
                     <td>{v.work_performance_score}점</td>
                     <td>{v.communication_score}점</td>
                   </tr>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/shared/ui/actions/Button'
 import { Card } from '@/shared/ui/layout/Card'
-import { downloadCsv, csvContent } from '@/shared/lib/csv'
+import { downloadBlob } from '@/shared/lib/csv'
 import { DateInput } from '@/shared/ui/forms/DateInput'
 import { Field } from '@/shared/ui/forms/Field'
 import { FilterPanel } from '@/shared/ui/forms/FilterPanel'
@@ -28,18 +28,15 @@ export function AssignmentsPage({ onNotice }: { onNotice: Notice }) {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const projects = useApi(() => projectsApi.list(), []).data?.data ?? []
-  const search = useApi(
-    () =>
-      assignmentsApi.search({
-        employee_name: query,
-        project_id: project,
-        project_role: role,
-        as_of: completeDate(date),
-        from: completeDate(from),
-        to: completeDate(to),
-      }),
-    [query, project, role, completeDate(date), completeDate(from), completeDate(to)],
-  )
+  const filters = {
+    employee_name: query,
+    project_id: project,
+    project_role: role,
+    as_of: completeDate(date),
+    from: completeDate(from),
+    to: completeDate(to),
+  }
+  const search = useApi(() => assignmentsApi.search(filters), [filters])
   const rows = search.data?.data ?? []
   return (
     <>
@@ -49,24 +46,10 @@ export function AssignmentsPage({ onNotice }: { onNotice: Notice }) {
         actions={
           <Button
             variant="secondary"
-            onClick={() => {
-              downloadCsv(
-                '프로젝트_투입이력.csv',
-                csvContent(
-                  ['직원', '사번', '프로젝트', '역할', '투입 시작일', '투입 종료일'],
-                  rows.map((m) => {
-                    const e = m.employee
-                    return [
-                      e.employee_name,
-                      e.employee_no,
-                      m.project.project_name,
-                      ROLES[m.project_role],
-                      m.assignment_start_date,
-                      m.assignment_end_date,
-                    ]
-                  }),
-                ),
-              )
+            onClick={async () => {
+              // 현재 조건의 전체 결과를 서버 CSV로 받습니다(page/size 없음).
+              const file = await assignmentsApi.exportCsv(filters)
+              downloadBlob(file.filename, file.blob)
               onNotice('현재 조회 조건의 투입 이력을 내려받았어요.')
             }}
           >

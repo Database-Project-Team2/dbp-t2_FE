@@ -12,17 +12,19 @@ import { Input } from '@/shared/ui/forms/Input'
 import { Modal } from '@/shared/ui/overlays/Modal'
 import { PageHeader } from '@/shared/ui/layout/PageHeader'
 import { Textarea } from '@/shared/ui/forms/Textarea'
-import { useStore } from '@/store/StoreContext'
-import type { Notice } from '@/app/routing/navigation'
+import { useSession } from '@/app/session/SessionContext'
+import { employeesApi } from '@/shared/api/resources'
+import { type Notice, go } from '@/app/routing/navigation'
 import { EmployeeDetailDialog } from '../components/EmployeeDetailDialog'
 
 export function ProfilePage({ onNotice }: { onNotice: Notice }) {
-  const { user, updateProfile } = useStore()
+  const { user, refresh, logout } = useSession()
   const me = user!
   const [edit, setEdit] = useState(false)
   const [education, setEducation] = useState(normalizeEducation(me.education))
   const [months, setMonths] = useState(String(me.total_career_months))
   const [skills, setSkills] = useState(me.skill_description || '')
+  const [current, setCurrent] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
@@ -37,16 +39,26 @@ export function ProfilePage({ onNotice }: { onNotice: Notice }) {
       setError('새 비밀번호가 서로 달라요.')
       return
     }
+    if (password && !current) {
+      setError('비밀번호를 바꾸려면 현재 비밀번호를 입력해 주세요.')
+      return
+    }
     setBusy(true)
     try {
-      await updateProfile(
-        {
-          education,
-          total_career_months: Number(months),
-          skill_description: skills || null,
-        },
-        password || undefined,
-      )
+      await employeesApi.updateMe({
+        education,
+        total_career_months: Number(months),
+        skill_description: skills.trim() || null,
+      })
+      if (password) {
+        await employeesApi.changePassword(current, password)
+        // 비밀번호를 바꾸면 토큰을 지우고 다시 로그인합니다(서버는 기존 토큰을 폐기하지 않음).
+        await logout()
+        go('dashboard')
+        onNotice('비밀번호를 변경했어요. 새 비밀번호로 다시 로그인해 주세요.')
+        return
+      }
+      await refresh()
       setEdit(false)
       onNotice('내 프로필을 업데이트했어요.')
     } catch (err) {
@@ -67,6 +79,7 @@ export function ProfilePage({ onNotice }: { onNotice: Notice }) {
             onClick={() => {
               setEdit(true)
               setError('')
+              setCurrent('')
               setPassword('')
               setConfirm('')
             }}
@@ -113,6 +126,20 @@ export function ProfilePage({ onNotice }: { onNotice: Notice }) {
                   value={skills}
                   onChange={(e) => setSkills(e.target.value)}
                   placeholder="보유 기술과 경험을 자유롭게 작성해 주세요"
+                />
+              </Field>
+              <Field
+                label="현재 비밀번호"
+                inputId="profile-current-password"
+                hint="비밀번호를 바꿀 때만 입력하세요."
+                wide
+              >
+                <SecretInput
+                  label="현재 비밀번호"
+                  id="profile-current-password"
+                  autoComplete="current-password"
+                  value={current}
+                  onChange={(e) => setCurrent(e.target.value)}
                 />
               </Field>
               <Field label="새 비밀번호" inputId="profile-password" hint="변경할 때만 입력하세요.">
