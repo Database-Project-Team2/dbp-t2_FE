@@ -4,18 +4,15 @@ import { cn } from '@/shared/lib/cn'
 import { dateLabel } from '@/shared/lib/date'
 import { Empty } from '@/shared/ui/feedback/Empty'
 import { Icon } from '@/shared/ui/actions/Icon'
-import { useStore } from '@/store/StoreContext'
-import type { Project } from '@/shared/model/entities'
+import type { EligibleProject } from '@/shared/api/types'
 
 export function EvaluationProjects({
   projects,
   onWrite,
 }: {
-  projects: Project[]
-  onWrite: (project: Project) => void
+  projects: EligibleProject[]
+  onWrite: (project: EligibleProject) => void
 }) {
-  const { db, user } = useStore()
-  const me = user!
   return (
     <div
       className={cn(
@@ -26,12 +23,7 @@ export function EvaluationProjects({
       )}
     >
       {projects.map((p) => {
-        const own = db.members.find(
-          (m) => m.project_id === p.project_id && m.employee_id === me.employee_id,
-        )!
-        const count = db.evaluations.filter(
-          (e) => e.registered_by_member_id === own.member_id,
-        ).length
+        const count = p.submitted_count
         return (
           <article key={p.project_id}>
             <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-canvas text-muted">
@@ -44,7 +36,7 @@ export function EvaluationProjects({
               </p>
               <div className="flex gap-1.5">
                 <Badge tone="purple">동료평가</Badge>
-                {own.project_role === 'PM' && (
+                {p.my_role === 'PM' && (
                   <>
                     <Badge tone="accent">PM 평가</Badge>
                     <Badge tone="green">고객평가 등록</Badge>

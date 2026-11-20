@@ -1,6 +1,9 @@
 import { api, type Query } from './client.ts'
 import type {
   AssignmentView,
+  EligibleProject,
+  EvaluationOptions,
+  EvaluationView,
   MemberCandidate,
   ClientView,
   EmployeeDashboard,
@@ -11,7 +14,7 @@ import type {
   ProjectListItem,
   ProjectStatus,
 } from './types.ts'
-import type { Client, Employee, ProjectRole } from '../model/entities.ts'
+import type { Client, Employee, EvaluationType, ProjectRole } from '../model/entities.ts'
 
 /** 페이지 UI가 없는 목록은 한 번에 최대치(100건)를 받습니다. */
 export const LIST_SIZE = 100
@@ -46,6 +49,37 @@ export const projectsApi = {
     }),
   addMember: (projectId: number, input: MemberInput) =>
     api.post<MemberView>(`/projects/${projectId}/members`, input),
+  recordWorkflow: (projectId: number, step: WorkflowStep, processedDate: string) =>
+    api.patch<unknown>(`/projects/${projectId}/customer-evaluation`, {
+      step,
+      processed_date: processedDate,
+    }),
+  evaluationOptions: (projectId: number, type: EvaluationType) =>
+    api.get<EvaluationOptions>(`/projects/${projectId}/evaluation-options`, {
+      evaluation_type: type,
+    }),
+}
+
+export type WorkflowStep = 'REQUEST' | 'RECEIVE' | 'REPORT'
+
+export interface EvaluationInput {
+  target_member_id: number
+  evaluation_type: EvaluationType
+  evaluated_date: string
+  work_performance_score: number
+  work_performance_comment: string
+  communication_score: number
+  communication_comment: string
+}
+
+export const evaluationsApi = {
+  eligible: () => api.get<EligibleProject[]>('/evaluations/eligible-projects'),
+  create: (input: EvaluationInput) => api.post<{ evaluation_id: number }>('/evaluations', input),
+  search: (query: Query = {}) =>
+    api.page<EvaluationView>('/evaluations', { size: LIST_SIZE, ...query }),
+  detail: (evaluationId: number) => api.get<EvaluationView>(`/evaluations/${evaluationId}`),
+  /** 목록과 같은 조건·권한의 전체 결과 CSV(page/size 없음). */
+  exportCsv: (query: Query = {}) => api.file('/evaluations/export.csv', query),
 }
 
 export interface ProjectInput {

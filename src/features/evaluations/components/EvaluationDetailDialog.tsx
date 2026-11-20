@@ -1,40 +1,25 @@
-import { canReadEvaluationComments } from '@/shared/domain/permissions'
 import { Avatar } from '@/shared/ui/data/Avatar'
 import { cn } from '@/shared/lib/cn'
 import { dateLabel } from '@/shared/lib/date'
 import { EVAL_TYPES } from '@/shared/model/labels'
 import { InfoGrid } from '@/shared/ui/data/InfoGrid'
 import { Modal } from '@/shared/ui/overlays/Modal'
-import { useStore } from '@/store/StoreContext'
-import type { EvaluationResult } from '@/shared/model/entities'
+import type { EvaluationView } from '@/shared/api/types'
 
 export function EvaluationDetailDialog({
   evaluation: e,
   onClose,
 }: {
-  evaluation: EvaluationResult
+  evaluation: EvaluationView
   onClose: () => void
 }) {
-  const { db, user } = useStore()
-  if (!canReadEvaluationComments(db, user!, e)) return null
-  const target = db.members.find((m) => m.member_id === e.target_member_id)!
-  const p = db.projects.find((p) => p.project_id === target.project_id)!
-  const employee = db.employees.find((x) => x.employee_id === target.employee_id)!
-  const registered = db.employees.find(
-    (x) =>
-      x.employee_id ===
-      db.members.find((m) => m.member_id === e.registered_by_member_id)?.employee_id,
-  )!
-  const evaluator =
-    e.evaluation_type === 'CLIENT'
-      ? db.clients.find((c) => c.client_id === p.client_id)?.contact_name
-      : db.employees.find(
-          (x) =>
-            x.employee_id ===
-            db.members.find((m) => m.member_id === e.evaluator_member_id)?.employee_id,
-        )?.employee_name
+  // 의견은 서버가 권한 있는 사용자에게만 보냅니다.
+  if (!e.comments_visible) return null
+  const employee = e.target
+  const registered = e.registered_by
+  const evaluator = e.evaluator.name
   return (
-    <Modal title="평가 상세" subtitle={p.project_name} onClose={onClose}>
+    <Modal title="평가 상세" subtitle={e.project_name} onClose={onClose}>
       <div
         className={cn(
           'mt-1 mb-6 flex items-center gap-4 [&_h2]:flex [&_h2]:items-center [&_h2]:gap-2.5',

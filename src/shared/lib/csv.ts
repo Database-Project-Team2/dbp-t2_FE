@@ -15,3 +15,13 @@ export function downloadCsv(name: string, content: string) {
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
+
+/** 서버가 만든 파일(CSV 등)을 그대로 저장합니다. */
+export function downloadBlob(name: string, blob: Blob) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = name
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}

@@ -6,11 +6,14 @@ import { Field } from '@/shared/ui/forms/Field'
 import { FormActions } from '@/shared/ui/forms/FormActions'
 import { Icon } from '@/shared/ui/actions/Icon'
 import { Modal } from '@/shared/ui/overlays/Modal'
-import { evaluationTargets } from '@/shared/domain/evaluationTasks'
 import { Select } from '@/shared/ui/forms/Select'
 import { type Notice, go } from '@/app/routing/navigation'
-import { useStore } from '@/store/StoreContext'
-import type { Project, EvaluationType } from '@/shared/model/entities'
+import { useSession } from '@/app/session/SessionContext'
+import { evaluationsApi, projectsApi } from '@/shared/api/resources'
+import { useApi } from '@/shared/api/useApi'
+import { ROLES } from '@/shared/model/labels'
+import type { EligibleProject } from '@/shared/api/types'
+import type { EvaluationType } from '@/shared/model/entities'
 import { ScoreField } from './ScoreField'
 
 export function EvaluationFormDialog({
@@ -18,14 +21,11 @@ export function EvaluationFormDialog({
   onClose,
   onNotice,
 }: {
-  project: Project
+  project: EligibleProject
   onClose: () => void
   onNotice: Notice
 }) {
-  const { db, user, today, saveEvaluation } = useStore()
-  const own = db.members.find(
-    (m) => m.project_id === p.project_id && m.employee_id === user!.employee_id,
-  )!
+  const { today } = useSession()
   const [type, setType] = useState<EvaluationType>('PEER')
   const [target, setTarget] = useState('')
   const [date, setDate] = useState(today)
@@ -34,20 +34,29 @@ export function EvaluationFormDialog({
   const [workComment, setWorkComment] = useState('')
   const [communicationComment, setCommunicationComment] = useState('')
   const [error, setError] = useState('')
-  const available = evaluationTargets(db, user!, p, type)
-  const client = db.clients.find((c) => c.client_id === p.client_id)!
+  const [busy, setBusy] = useState(false)
+  // 평가 대상·실제 평가자·제출 가능 여부는 서버가 로그인 정보로 계산합니다.
+  const options = useApi(
+    () => projectsApi.evaluationOptions(p.project_id, type),
+    [p.project_id, type],
+  )
+  const available = options.data?.available_targets ?? []
   const blockedClient =
-    type === 'CLIENT' && (!p.evaluation_requested_date || !!p.evaluation_reported_date)
+    type === 'CLIENT' && (p.workflow_status === 'NOT_REQUESTED' || p.workflow_status === 'REPORTED')
+  const blockedReason = options.data?.blocked_reason
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (busy) return
+    if (!work || !communication) {
+      setError('두 항목 모두 1~5점으로 선택해 주세요.')
+      return
+    }
+    setBusy(true)
     try {
-      saveEvaluation({
-        evaluation_id: 0,
+      await evaluationsApi.create({
         target_member_id: Number(target),
         evaluation_type: type,
-        evaluator_member_id: type === 'CLIENT' ? null : own.member_id,
-        registered_by_member_id: own.member_id,
         evaluated_date: date,
         work_performance_score: work,
         work_performance_comment: workComment,
@@ -58,6 +67,8 @@ export function EvaluationFormDialog({
       onNotice('평가를 제출했어요. 소중한 피드백 감사합니다.')
     } catch (err) {
       setError((err as Error).message)
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -75,7 +86,7 @@ export function EvaluationFormDialog({
               }}
             >
               <option value="PEER">동료평가</option>
-              {own.project_role === 'PM' && (
+              {p.my_role === 'PM' && (
                 <>
                   <option value="PM">PM 평가</option>
                   <option value="CLIENT">고객평가</option>
@@ -86,7 +97,7 @@ export function EvaluationFormDialog({
           <Field label="평가일">
             <DateInput
               required
-              min={p.actual_end_date || undefined}
+              min={options.data?.min_evaluated_date || p.actual_end_date}
               max={today}
               value={date}
               onValueChange={setDate}
@@ -97,30 +108,30 @@ export function EvaluationFormDialog({
               <option value="">직원을 선택하세요</option>
               {available.map((m) => (
                 <option key={m.member_id} value={m.member_id}>
-                  {db.employees.find((e) => e.employee_id === m.employee_id)?.employee_name} ·{' '}
-                  {m.project_role}
+                  {m.employee_name} · {ROLES[m.project_role]}
                 </option>
               ))}
             </Select>
           </Field>
         </div>
-        {!available.length && !blockedClient && (
+        {options.data && !available.length && !blockedClient && (
           <div className="my-5 flex items-center gap-2 rounded-xl bg-canvas px-4 py-3.5 text-xs leading-relaxed text-secondary">
-            이 유형에서 작성할 수 있는 평가를 모두 제출했어요.
+            {blockedReason || '이 유형에서 작성할 수 있는 평가를 모두 제출했어요.'}
           </div>
         )}
-        {type === 'CLIENT' && (
+        {type === 'CLIENT' && options.data && (
           <div className="my-5 flex items-center gap-2 rounded-xl bg-canvas px-4 py-3.5 text-xs leading-relaxed text-secondary">
             <Icon name="info" size={18} />
             <span>
-              실제 평가자: {client.contact_name} ({client.client_name})<br />
-              시스템 등록자: {user!.employee_name} PM
+              실제 평가자: {options.data.evaluator.name} ({options.data.evaluator.client_name})
+              <br />
+              시스템 등록자: {options.data.registered_by.employee_name} PM
             </span>
           </div>
         )}
         {blockedClient && (
           <div className="mt-4 flex items-center gap-2 rounded-xl border border-brand-line bg-brand-soft px-4 py-3 text-xs leading-relaxed text-brand-ink">
-            {p.evaluation_reported_date ? (
+            {p.workflow_status === 'REPORTED' ? (
               '이미 회사 보고를 완료한 프로젝트예요.'
             ) : (
               <span>
@@ -162,7 +173,11 @@ export function EvaluationFormDialog({
           <Button variant="secondary" type="button" onClick={onClose}>
             취소
           </Button>
-          <Button variant="primary" type="submit" disabled={!available.length || blockedClient}>
+          <Button
+            variant="primary"
+            type="submit"
+            disabled={busy || !available.length || blockedClient}
+          >
             평가 제출
           </Button>
         </FormActions>

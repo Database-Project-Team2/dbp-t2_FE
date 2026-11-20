@@ -86,6 +86,18 @@ test('장면 3: 프로젝트 등록 → PM·신규 직원 배치 → 409·422·�
   // 진행 중인 프로젝트 3은 평가 대상이 아니다.
   await page.goto('/#/evaluations/write')
   await expect(page.getByRole('heading', { name: '교육 콘텐츠 관리 시스템' })).toHaveCount(0)
+  const peerOnOpenProject = await manager.post('evaluations', {
+    data: {
+      target_member_id: 12,
+      evaluation_type: 'PEER',
+      evaluated_date: today,
+      work_performance_score: 3,
+      work_performance_comment: '시도',
+      communication_score: 3,
+      communication_comment: '시도',
+    },
+  })
+  expect(peerOnOpenProject.status()).toBe(422)
 
   // 새 프로젝트 종료 → 투입 중 두 명의 종료일이 같은 날로 기록된다.
   await page.goto(`/#/projects/${projectId}`)

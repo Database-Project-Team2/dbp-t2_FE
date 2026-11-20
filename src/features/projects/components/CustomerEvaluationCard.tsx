@@ -1,24 +1,25 @@
 import { Badge } from '@/shared/ui/feedback/Badge'
 import { Button } from '@/shared/ui/actions/Button'
 import { Card } from '@/shared/ui/layout/Card'
-import { clientCoverage, workflowLabel } from '@/shared/domain/evaluations'
+import { WORKFLOW } from '@/shared/model/labels'
 import { cn } from '@/shared/lib/cn'
 import { dateLabel } from '@/shared/lib/date'
 import { SectionHeading } from '@/shared/ui/layout/SectionHeading'
-import { useStore } from '@/store/StoreContext'
-import type { Project } from '@/shared/model/entities'
+import type { ProjectDetail } from '@/shared/api/types'
 
 export function CustomerEvaluationCard({
   project: p,
   canRecord,
   onRecord,
 }: {
-  project: Project
+  project: ProjectDetail
   canRecord: boolean
   onRecord: () => void
 }) {
-  const { db } = useStore()
-  const coverage = clientCoverage(db, p)
+  const coverage = {
+    received: p.customer_evaluation_progress.received_count,
+    total: p.customer_evaluation_progress.participant_count,
+  }
   return (
     <Card as="section">
       <SectionHeading>
@@ -26,7 +27,9 @@ export function CustomerEvaluationCard({
           <h2>고객평가 진행 상황</h2>
           <p>의뢰부터 회사 보고까지 단계별로 기록해요.</p>
         </div>
-        <Badge tone={p.evaluation_reported_date ? 'green' : 'orange'}>{workflowLabel(p)}</Badge>
+        <Badge tone={p.evaluation_reported_date ? 'green' : 'orange'}>
+          {WORKFLOW[p.workflow_status]}
+        </Badge>
       </SectionHeading>
       <div className="flex px-6 pt-4 pb-7">
         {[

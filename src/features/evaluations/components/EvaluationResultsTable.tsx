@@ -1,4 +1,3 @@
-import { canReadEvaluationComments } from '@/shared/domain/permissions'
 import { Avatar } from '@/shared/ui/data/Avatar'
 import { Badge } from '@/shared/ui/feedback/Badge'
 import { Button } from '@/shared/ui/actions/Button'
@@ -7,17 +6,15 @@ import { Empty } from '@/shared/ui/feedback/Empty'
 import { EVAL_TYPES } from '@/shared/model/labels'
 import { PersonInline } from '@/shared/ui/data/PersonInline'
 import { Table } from '@/shared/ui/data/Table'
-import { useStore } from '@/store/StoreContext'
-import type { EvaluationResult } from '@/shared/model/entities'
+import type { EvaluationView } from '@/shared/api/types'
 
 export function EvaluationResultsTable({
   results,
   onSelect,
 }: {
-  results: EvaluationResult[]
-  onSelect: (evaluation: EvaluationResult) => void
+  results: EvaluationView[]
+  onSelect: (evaluation: EvaluationView) => void
 }) {
-  const { db, user } = useStore()
   return (
     <div className="overflow-auto">
       <Table>
@@ -40,8 +37,7 @@ export function EvaluationResultsTable({
                 b.evaluation_id - a.evaluation_id,
             )
             .map((e) => {
-              const target = db.members.find((m) => m.member_id === e.target_member_id)!
-              const employee = db.employees.find((x) => x.employee_id === target.employee_id)!
+              const employee = e.target
               return (
                 <tr key={e.evaluation_id}>
                   <td>
@@ -50,9 +46,7 @@ export function EvaluationResultsTable({
                       <b>{employee.employee_name}</b>
                     </PersonInline>
                   </td>
-                  <td>
-                    {db.projects.find((p) => p.project_id === target.project_id)?.project_name}
-                  </td>
+                  <td>{e.project_name}</td>
                   <td>
                     <Badge
                       tone={
@@ -80,7 +74,7 @@ export function EvaluationResultsTable({
                   </td>
                   <td>{dateLabel(e.evaluated_date)}</td>
                   <td>
-                    {canReadEvaluationComments(db, user!, e) ? (
+                    {e.comments_visible ? (
                       <Button variant="link" size="plain" onClick={() => onSelect(e)}>
                         의견 보기
                       </Button>

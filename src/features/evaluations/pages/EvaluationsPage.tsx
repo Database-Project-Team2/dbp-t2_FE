@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { Button } from '@/shared/ui/actions/Button'
 import { Card } from '@/shared/ui/layout/Card'
 import { Icon } from '@/shared/ui/actions/Icon'
-import { isManagement, canReadEvaluationComments } from '@/shared/domain/permissions'
+import { isManagement } from '@/shared/domain/permissions'
 import { PageHeader } from '@/shared/ui/layout/PageHeader'
 import { TabButton } from '@/shared/ui/actions/TabButton'
-import { useStore } from '@/store/StoreContext'
+import { useSession } from '@/app/session/SessionContext'
+import { LoadState } from '@/shared/ui/feedback/LoadState'
 import type { Notice } from '@/app/routing/navigation'
-import type { Project, EvaluationResult } from '@/shared/model/entities'
+import type { EligibleProject, EvaluationView } from '@/shared/api/types'
 import { downloadEvaluationResults } from '../utils/downloadEvaluationResults'
 import { EvaluationDetailDialog } from '../components/EvaluationDetailDialog'
 import { EvaluationFilters } from '../components/EvaluationFilters'
@@ -23,17 +24,22 @@ export function EvaluationsPage({
   onNotice: Notice
   initialTab?: 'results' | 'write'
 }) {
-  const { db, user } = useStore()
-  const me = user!
-  const manager = isManagement(me)
+  const { user } = useSession()
+  const manager = isManagement(user!)
   const [tab, setTab] = useState(initialTab)
-  const [formProject, setFormProject] = useState<Project | null>(null)
-  const [selected, setSelected] = useState<EvaluationResult | null>(null)
+  const [formProject, setFormProject] = useState<EligibleProject | null>(null)
+  const [selected, setSelected] = useState<EvaluationView | null>(null)
+  const [exportError, setExportError] = useState('')
   const search = useEvaluationSearch()
-  const { mine, evaluations, results } = search
-  function exportResults() {
-    downloadEvaluationResults(db, me, results)
-    onNotice('조회된 평가 기초자료를 내려받았어요.')
+  const { mine, results } = search
+  async function exportResults() {
+    try {
+      setExportError('')
+      await downloadEvaluationResults(search.filters)
+      onNotice('조회된 평가 기초자료를 내려받았어요.')
+    } catch (error) {
+      setExportError((error as Error).message)
+    }
   }
 
   return (
@@ -52,7 +58,7 @@ export function EvaluationsPage({
         <div className="flex gap-6 border-b border-line px-6">
           <TabButton active={tab === 'results'} onClick={() => setTab('results')}>
             {manager ? '전체 평가 결과' : '참여 프로젝트 평가'}
-            <span>{evaluations.length}</span>
+            <span>{search.total}</span>
           </TabButton>
           <TabButton active={tab === 'write'} onClick={() => setTab('write')}>
             평가할 프로젝트<span>{mine.length}</span>
@@ -72,18 +78,27 @@ export function EvaluationsPage({
                 CSV 내보내기
               </Button>
             </div>
-            <EvaluationResultsTable results={results} onSelect={setSelected} />
+            {exportError && <LoadState error={new Error(exportError)} />}
+            {search.resultsLoaded ? (
+              <EvaluationResultsTable results={results} onSelect={setSelected} />
+            ) : (
+              <LoadState error={search.resultsError} />
+            )}
           </>
         )}
       </Card>
       {formProject && (
         <EvaluationFormDialog
           project={formProject}
-          onClose={() => setFormProject(null)}
+          onClose={() => {
+            setFormProject(null)
+            search.reloadMine()
+            search.reloadResults()
+          }}
           onNotice={onNotice}
         />
       )}
-      {selected && canReadEvaluationComments(db, me, selected) && (
+      {selected && selected.comments_visible && (
         <EvaluationDetailDialog evaluation={selected} onClose={() => setSelected(null)} />
       )}
     </>

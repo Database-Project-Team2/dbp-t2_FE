@@ -5,7 +5,6 @@ import { DateInput } from '@/shared/ui/forms/DateInput'
 import { Field } from '@/shared/ui/forms/Field'
 import { FormActions } from '@/shared/ui/forms/FormActions'
 import { Modal } from '@/shared/ui/overlays/Modal'
-import { useStore } from '@/store/StoreContext'
 import { useSession } from '@/app/session/SessionContext'
 import { projectsApi } from '@/shared/api/resources'
 import type { Notice } from '@/app/routing/navigation'
@@ -22,7 +21,6 @@ export function ProjectActionDialog({
   onClose: () => void
   onNotice: Notice
 }) {
-  const { recordWorkflow } = useStore()
   const { today } = useSession()
   const [date, setDate] = useState(today)
   const [error, setError] = useState('')
@@ -34,7 +32,16 @@ export function ProjectActionDialog({
     try {
       // 종료는 서버가 한 트랜잭션에서 투입 중 구성원의 종료일까지 기록합니다.
       if (close) await projectsApi.close(p.project_id, date)
-      else recordWorkflow(p.project_id, date)
+      else
+        await projectsApi.recordWorkflow(
+          p.project_id,
+          !p.evaluation_requested_date
+            ? 'REQUEST'
+            : !p.evaluation_received_date
+              ? 'RECEIVE'
+              : 'REPORT',
+          date,
+        )
       onClose()
       onNotice(
         close

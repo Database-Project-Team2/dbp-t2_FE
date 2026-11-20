@@ -40,3 +40,32 @@ export async function registerNewbie(hireDate: string) {
 }
 
 export const NEW_PROJECT = '새봄 학습관리 시스템'
+
+/** 장면 3 종료 상태를 API로 만듭니다: 새 프로젝트(새봄교육, 오늘 착수) + 박지훈 PM + 신규 직원 프로그래머, 오늘 종료. */
+export async function prepareClosedNewProject(today: string) {
+  const newbieId = await registerNewbie(today)
+  const manager = await apiContext(await apiLogin('demo01'))
+  const created = await manager.post('projects', {
+    data: {
+      project_name: NEW_PROJECT,
+      client_id: 3,
+      actual_start_date: today,
+      planned_end_date: today,
+    },
+  })
+  const projectId = (await created.json()).data.project_id as number
+  const pm = await manager.post(`projects/${projectId}/members`, {
+    data: { employee_id: 3, project_role: 'PM', assignment_start_date: today },
+  })
+  const newbie = await manager.post(`projects/${projectId}/members`, {
+    data: { employee_id: newbieId, project_role: 'PROGRAMMER', assignment_start_date: today },
+  })
+  const pmMemberId = (await pm.json()).data.member_id as number
+  const newbieMemberId = (await newbie.json()).data.member_id as number
+  const closed = await manager.post(`projects/${projectId}/close`, {
+    data: { actual_end_date: today },
+  })
+  if (closed.status() !== 200) throw new Error(`준비 실패: ${await closed.text()}`)
+  await manager.dispose()
+  return { projectId, newbieId, pmMemberId, newbieMemberId }
+}
