@@ -41,7 +41,7 @@ test('장면 4: PM 평가 → 프로젝트 4 PM 평가 차단·동료평가 → 
   await fillScores(page)
   await dialog.getByRole('button', { name: '평가 제출' }).click()
   await expect(dialog).toBeHidden()
-  await expect(page.getByRole('status')).toContainText('평가를 제출했어요')
+  await expect(page.getByRole('status').filter({ hasText: '평가를 제출했어요' })).toBeVisible()
 
   // 프로젝트 4에서는 설계자라 PM 평가를 고를 수 없고, API도 403
   dialog = await openWrite(page, '유통 분석 대시보드')

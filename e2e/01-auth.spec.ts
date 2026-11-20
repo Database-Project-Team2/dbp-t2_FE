@@ -26,7 +26,9 @@ test('장면 1: 회원가입 → 사번 확인 → 대소문자만 바꾼 ID 차
   await page.getByRole('button', { name: '회원가입', exact: true }).click()
 
   // 가입 완료 안내와 계정 메뉴에 서버가 발급한 사번이 보인다.
-  await expect(page.getByRole('status')).toContainText(`새 사번은 ${expectedNo}`)
+  await expect(page.getByRole('status').filter({ hasText: '가입이 완료' })).toContainText(
+    `새 사번은 ${expectedNo}`,
+  )
   await page.getByLabel('계정 메뉴').click()
   await expect(page.locator('details').getByText(expectedNo, { exact: true })).toBeVisible()
   await page.keyboard.press('Escape')
